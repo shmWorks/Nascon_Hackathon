@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: morning-paper
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: false        # CI triggers deploys via the deploy hook, only after tests pass
+    healthCheckPath: /healthz
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # set in the Render dashboard; never committed

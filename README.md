@@ -35,6 +35,10 @@ Demo readers: `ayesha@demo.paper`, `bilal@demo.paper`, `sara@demo.paper`, passwo
 
 ## Architecture
 
+![Architecture](diagrams/architecture.svg)
+
+Source: [`diagrams/architecture.mmd`](diagrams/architecture.mmd) (editable: `architecture.excalidraw`).
+
 ### Principles
 
 1. **Staged batch pipeline, stored artifacts.** Each stage reads the previous stage's stored output and writes its own. Every stage is idempotent and resumable; a crash or quota stop resumes, it does not restart.
