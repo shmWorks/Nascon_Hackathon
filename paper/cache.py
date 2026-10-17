@@ -1,6 +1,13 @@
-"""Content-addressed disk cache: identical inputs never cost a second external call."""
+"""Content-addressed disk cache: identical inputs never cost a second external call.
+
+Writes are atomic and concurrency-safe: each writer uses a unique temp file; if another writer already stored the
+same key, its content is equivalent by construction (same input hash), so losing the race is success.
+"""
 import hashlib
 import json
+import os
+import threading
+import uuid
 
 from . import config
 
@@ -15,16 +22,24 @@ def _path(ns, k):
     return p / k
 
 
+def _atomic_write(p, data: bytes):
+    tmp = p.with_name(f"{p.name}.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex[:8]}.tmp")
+    tmp.write_bytes(data)
+    try:
+        tmp.replace(p)
+    except PermissionError:  # Windows: target held open by a concurrent writer of the same key
+        tmp.unlink(missing_ok=True)
+        if not p.exists():
+            raise
+
+
 def get(ns, k):
     p = _path(ns, k)
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
 def put(ns, k, value):
-    p = _path(ns, k)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_text(json.dumps(value), encoding="utf-8")
-    tmp.replace(p)  # atomic: a crash never leaves a half-written entry
+    _atomic_write(_path(ns, k), json.dumps(value).encode("utf-8"))
     return value
 
 
@@ -34,8 +49,5 @@ def get_bytes(ns, k):
 
 
 def put_bytes(ns, k, data):
-    p = _path(ns, k)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_bytes(data)
-    tmp.replace(p)
+    _atomic_write(_path(ns, k), data)
     return data
