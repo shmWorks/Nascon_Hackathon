@@ -16,7 +16,8 @@ EDITIONS = DATA / "editions"
 PKT = timezone(timedelta(hours=5))
 EDITION_CUTOFF_HOUR = 6  # edition D covers source time in [D-1 06:00, D 06:00) PKT (D4)
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# Keys: GEMINI_API_KEY and/or GEMINI_API_KEY1..9. Quota is per project per model, so each key is a separate lane.
+GEMINI_API_KEYS = list(dict.fromkeys(v for k in ["GEMINI_API_KEY"] + [f"GEMINI_API_KEY{i}" for i in range(1, 10)] if (v := os.environ.get(k, "").strip())))
 MODELS = {  # per-model free budgets (state.md: model routing)
     "synth": ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.7-flash", "gemma-4-26b-a4b-it", "gemini-3-flash-preview", "gemini-3.6-flash"],
     "lead": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-26b-a4b-it"],

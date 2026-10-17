@@ -12,8 +12,8 @@ import time
 from . import cache, config
 
 log = logging.getLogger("paper.llm")
-_client = None
-_exhausted: dict[str, float] = {}  # model -> monotonic time until which its daily quota is spent
+_clients: dict[int, object] = {}
+_cooling: dict[tuple[str, int], float] = {}  # (model, key index) -> monotonic time until the lane may be used again
 _concurrency = threading.BoundedSemaphore(2)  # avoid per-minute bursts across parallel builds
 
 
@@ -28,17 +28,22 @@ class LLMUnavailable(Exception):
     """All models in the chain failed for this call; callers apply the F3 fallback."""
 
 
-def client():
-    global _client
-    if _client is None:
-        if not config.GEMINI_API_KEY:
-            raise LLMUnavailable("GEMINI_API_KEY is not set")
+def client(ki: int = 0):
+    """One client per configured key; each key is a separate quota lane."""
+    if not config.GEMINI_API_KEYS:
+        raise LLMUnavailable("No GEMINI_API_KEY / GEMINI_API_KEY1..9 is set")
+    if ki not in _clients:
         from google import genai
         from google.genai import types
 
         # Per-request timeout: a hung request must become a classified transient error, not a stuck pipeline.
-        _client = genai.Client(api_key=config.GEMINI_API_KEY, http_options=types.HttpOptions(timeout=config.LLM_REQUEST_TIMEOUT_MS))
-    return _client
+        _clients[ki] = genai.Client(api_key=config.GEMINI_API_KEYS[ki], http_options=types.HttpOptions(timeout=config.LLM_REQUEST_TIMEOUT_MS))
+    return _clients[ki]
+
+
+def lanes(role: str):
+    """(model, key) pairs in preference order: each model is tried on every key before the next model."""
+    return [(m, ki) for m in config.MODELS[role] for ki in range(len(config.GEMINI_API_KEYS))]
 
 
 def classify(err: Exception) -> str:
@@ -80,9 +85,13 @@ def generate_json(role: str, prompt: str, schema, images=()):
     parts = [types.Part.from_bytes(data=b, mime_type=m) for b, m in images] + [prompt]
     deadline = time.monotonic() + config.LLM_CALL_BUDGET_S
     last = None
-    for model in config.MODELS[role]:
-        if _exhausted.get(model, 0) > time.monotonic():
-            continue  # daily quota spent: skip without wasting a request
+    if not config.GEMINI_API_KEYS:
+        raise LLMUnavailable("No GEMINI_API_KEY / GEMINI_API_KEY1..9 is set")
+    all_lanes = lanes(role)
+    for li, (model, ki) in enumerate(all_lanes):
+        if _cooling.get((model, ki), 0) > time.monotonic():
+            continue  # this lane's quota is cooling down: skip without spending a request
+        more_lanes = li < len(all_lanes) - 1
         repair = None
         for attempt in range(config.LLM_MAX_ATTEMPTS):
             if time.monotonic() > deadline:
@@ -90,7 +99,7 @@ def generate_json(role: str, prompt: str, schema, images=()):
             try:
                 contents = parts if repair is None else parts + [f"Your previous output was invalid: {repair}. Return valid JSON only."]
                 with _concurrency:
-                    r = client().models.generate_content(
+                    r = client(ki).models.generate_content(
                         model=model, contents=contents,
                         config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema, temperature=0.2),
                     )
@@ -109,12 +118,13 @@ def generate_json(role: str, prompt: str, schema, images=()):
                     raise  # never retry or mask a programming error
                 last = e
                 kind = classify(e)
-                log.warning("llm %s %s attempt %d: %s", model, kind, attempt + 1, str(e)[:1500] if "429" in str(e)[:40] else str(e)[:300])
+                log.warning("llm %s key#%d %s attempt %d: %s", model, ki + 1, kind, attempt + 1, str(e)[:1500] if "429" in str(e)[:40] else str(e)[:300])
                 if kind == "transient":
                     delay, per_day = _retry_after(e)
-                    if per_day or (delay and delay > config.LLM_CALL_BUDGET_S):
-                        _exhausted[model] = time.monotonic() + (delay or 3600)
-                        log.warning("llm %s quota exhausted for %.0fs — next model", model, delay or 3600)
+                    if getattr(e, "code", None) == 429 and (per_day or more_lanes or (delay and delay > config.LLM_CALL_BUDGET_S)):
+                        cool = delay or (3600 if per_day else 60)
+                        _cooling[(model, ki)] = time.monotonic() + cool
+                        log.warning("llm %s key#%d quota hit (%s) — cooling %.0fs, next lane", model, ki + 1, "day" if per_day else "minute", cool)
                         break
                     remaining = deadline - time.monotonic()
                     wait = delay + random.uniform(0, 1) if delay else random.uniform(0, 2 ** (attempt + 1))  # server hint, else full jitter
@@ -125,6 +135,9 @@ def generate_json(role: str, prompt: str, schema, images=()):
                 if kind == "unknown" and attempt == 0:
                     continue
                 if kind == "config" and "api key" in str(e).lower():
-                    raise LLMUnavailable(f"configuration error: {e}") from e
-                break  # permanent / config(model) / unknown twice: next model
+                    for lane_model, lane_key in all_lanes:  # an invalid key disables every lane that uses it, not the whole call
+                        if lane_key == ki:
+                            _cooling[(lane_model, lane_key)] = time.monotonic() + 86400
+                    log.error("llm key#%d rejected (configuration error) — disabled", ki + 1)
+                break  # permanent / config / unknown twice: next lane
     raise LLMUnavailable(str(last))
