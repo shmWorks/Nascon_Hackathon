@@ -26,6 +26,8 @@ Last updated: 2026-10-17 16:45 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Blockers and open questions
 
+- E1–E3 (spec.md) are new: deployment target, CI/CD shape and the paid-value proposition are undecided; the plan to freeze must absorb them.
+
 - Official rubric/weights and named NaSCon'26 judges remain unverified. Sponsor-fit evidence is proposed in `spec.md`; research recommendations are not added acceptance gates.
 
 ## Plan to freeze (20:00 PKT)
@@ -58,7 +60,7 @@ Each milestone ends on its done-check; do not start the next until it passes. If
 - Error-classified retry policy (spec.md § Failure cases) | Blanket retries waste quota on permanent errors and hide config faults | Each error class has a defined action | A provider returns errors outside the classes
 - Presentation personalization: section order by interest strength, lead story = top-ranked with long summary, briefs below; longer brief summaries are a later add-on | Brief R2 requires personalized presentation, not only selection | Layout depends on ranking output | —
 - R5: "Three things to know" front-page box now; audio briefing and recall quiz only if A1–A10 have proof | Directly answers the brief's "can't name three things they learned" | One extra model output per edition | —
-- Localhost only; repo stays private until the user makes it public before submission, after a secret scan | Loom is the demo; S1 requires public repo | No deployment work | Judges require a live URL
+- **Superseded by E1 (deployment required), 16:45:** Localhost only; repo stays private until the user makes it public before submission, after a secret scan | Loom is the demo; S1 requires public repo | No deployment work | Judges require a live URL
 - 7-day backfill: one edition per day D−6…D from that day's real items, profile and signals replayed in order | Gives a real archive (A9), dated freshness (A4) and visible learning across 7 editions (A10) | Sources must support date-scoped retrieval; RSS is not required | A source spike shows a day cannot be reconstructed
 - Multimodal Story synthesis: cluster items across sources and modalities into a Story; one model call reasons across all of a story's items together, with per-claim citations, agreement/disagreement, and what visuals add. Stages: text+image → YouTube video → podcast audio | Differentiator: one story, all angles, every claim traceable, versus link lists | Model must accept mixed modalities; clustering needs embeddings | Provider cannot accept images or quota cannot cover synthesis
 - UX: finite daily edition with a "caught up" end state; daily ritual is the habit loop; UX principles derived from the reader's job, then multi-expert design review before build | Brief's failure metric is "can't name three things learned", so comprehension and trust beat time-on-site | No infinite feed | Readers want continuous browsing beyond the edition

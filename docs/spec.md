@@ -17,6 +17,7 @@ A product that learns what each reader cares about, gathers matching articles fr
 | Quality bar | Complete end-to-end MVP, desirable and usable to the standard of the sponsor and judge, Eynvision (software house) | User |
 | Repo | Public GitHub repo; all commits monitored | Brief (G1) |
 | Reuse restrictions | Not stated in brief | Brief |
+| Deployment, CI/CD, paid-grade value | Required (E1–E3) | User |
 | Stack preference | React/TypeScript, Python, SQL, Gemini, LangGraph — preference, not mandate | Handoff §1 |
 
 Use the system clock for schedule decisions (`date`); timezone is PKT (UTC+5).
@@ -36,6 +37,9 @@ IDs are stable; reference them in commits, tests and `state.md`.
 | S1 | Submit public GitHub repo link. |
 | S2 | Submit Loom video of the product, 5 minutes max. |
 | S3 | Submit architecture design diagram. |
+| E1 | Deployed and reachable by evaluators (user, 2026-10-17 16:45). |
+| E2 | GitHub used throughout with regular commits pushed; CI/CD pipeline in place; evaluators check both (user). |
+| E3 | Value a reader would pay for: tangible, felt value, not a feature demo (user). |
 
 Reader actions named in the brief ("The idea"): read on web page, click through to original article, skip unwanted items, download whole paper as PDF.
 
