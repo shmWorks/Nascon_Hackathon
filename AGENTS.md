@@ -11,6 +11,7 @@ Each fact has one home. Read the home; link to it rather than restating it.
 | Start of any session; what to do next; blockers; past decisions | `docs/state.md` |
 | Scope, requirement IDs (R*/A*), constraints, judge-evidence mapping | `docs/spec.md` |
 | Organizer's exact wording | `docs/brief.md` |
+| Sponsor-fit choices, differentiators or demo framing | `docs/eynvision.md` — research findings and evidence limits |
 | Setup, run, test, demo commands; architecture; attribution | `README.md` (created with the first runnable command) |
 | Choosing a base repo or reference; doc-layout rules; evaluation guidance | `HACKATHON_AGENT_HANDOFF.md` — read only the section the task needs |
 | Exact API fields, validation, dependency versions, test expectations | Schema/code, lockfile, tests |

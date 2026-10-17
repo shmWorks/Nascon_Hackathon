@@ -70,4 +70,4 @@ Official criteria and weights are undisclosed. Criteria below are **provisional*
 | R4 Learning / unknown | Same-reader before/after editions (A10) | None | Define signals and update rule |
 | R5 Exploration / unknown | Demoed feature beyond core | None | Only after R1–R4 have proof |
 | End-to-end MVP completeness / unknown | Fresh-terminal run: onboarding → edition → PDF → signal → next edition | None | First vertical slice |
-| Fit for Eynvision / unknown | To be defined from user's Eynvision research | None | User researching |
+| Fit for Eynvision / unknown | Proposed evidence: usable workflow, source traceability, matched editions and observable adaptation; rationale: [sponsor research](eynvision.md) | Public-source research complete; no product proof | Validate R1–R4 first; sponsor patterns guide tradeoffs, not official scoring |
