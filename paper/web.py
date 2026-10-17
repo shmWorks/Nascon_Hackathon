@@ -26,6 +26,23 @@ _build_lock = threading.Lock()
 db.init()
 
 
+def _embed_missing():
+    """Deployed demo data ships without item vectors; recompute them locally (model is in the image, ~1 s)."""
+    import numpy as np
+
+    from . import embed
+
+    with db.tx() as con:
+        rows = con.execute("SELECT id, title, description FROM items WHERE vec IS NULL").fetchall()
+    if rows:
+        vecs = embed.embed([f"{r['title']}. {(r['description'] or '')[:300]}" for r in rows])
+        with db.tx() as con:
+            con.executemany("UPDATE items SET vec=? WHERE id=?", [(v.astype(np.float32).tobytes(), r["id"]) for r, v in zip(rows, vecs)])
+
+
+threading.Thread(target=_embed_missing, daemon=True).start()
+
+
 @app.middleware("http")
 async def origin_check(request: Request, call_next):
     """CSRF defense (D6): state-changing requests must come from this origin; cookie is SameSite=Lax."""

@@ -12,8 +12,10 @@ def export(dest: Path):
     (dest / "editions").mkdir(exist_ok=True)
     out = dest / "paper.db"
     out.unlink(missing_ok=True)
+    work = dest / "work.db"
+    work.unlink(missing_ok=True)
     src = sqlite3.connect(config.DB_PATH)
-    dst = sqlite3.connect(out)
+    dst = sqlite3.connect(work)
     src.backup(dst)
     src.close()
     latest = dst.execute("SELECT MAX(day) FROM items").fetchone()[0]
@@ -24,11 +26,12 @@ def export(dest: Path):
     dst.execute("DELETE FROM topics WHERE kind='custom' AND owner NOT IN (" + keep + ")")
     dst.execute("DELETE FROM readers WHERE persona IS NULL")
     dst.execute("DELETE FROM items WHERE day <> ?", (latest,))
-    dst.execute("UPDATE items SET feed_body=NULL")
+    dst.execute("UPDATE items SET feed_body=NULL, vec=NULL")  # vectors are recomputed at startup by the baked-in local model
     dst.commit()
-    dst.execute("VACUUM")
+    dst.execute("VACUUM INTO ?", (str(out),))  # fresh compact file; in-place VACUUM did not truncate on Windows
     pdfs = [r[0] for r in dst.execute("SELECT pdf_path FROM editions WHERE pdf_path IS NOT NULL")]
     dst.close()
+    work.unlink()
     for p in pdfs:
         shutil.copy2(config.EDITIONS / p, dest / "editions" / p)
     return {"db_mb": round(out.stat().st_size / 1e6, 1), "pdfs": len(pdfs), "latest_day": latest}
