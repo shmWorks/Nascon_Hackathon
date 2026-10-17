@@ -2,10 +2,11 @@
 
 Authoritative for verified status, blockers, next action and consequential decisions. Update when a milestone passes or fails, a blocker changes, a decision changes, or work is handed off. Requirement IDs (R*, A*) refer to [`spec.md`](spec.md).
 
-Last updated: 2026-10-17 11:05 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
+Last updated: 2026-10-17 14:50 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Verified status
 
+- Grilling complete (15 decisions, below) and adversarial review of spec/state complete; review fixes pending user decisions are listed under Blockers.
 - Brief extracted: [`brief.md`](brief.md) (verbatim) and [`spec.md`](spec.md) (requirements, acceptance cases, provisional judge mapping).
 - Stack installed: uv project (`pyproject.toml`, `uv.lock`), Python 3.14.4; FastAPI, Jinja2, httpx, feedparser, Playwright, google-genai, argon2-cffi import cleanly. No base repository; no application code yet.
 - Spikes (2026-10-17, scripts in `spikes/`):
@@ -25,16 +26,14 @@ Last updated: 2026-10-17 11:05 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Blockers and open questions
 
+- Open review decisions (adversarial review 14:45, proposals awaiting user): D1 tiered scope + cut order to fit 5 h to freeze; D2 backfill signals come from a labeled persona simulator; D3 topic taxonomy = IPTC Media Topics, items assigned by embedding similarity; D4 edition day = items with source time in [D−1 06:00, D 06:00) PKT; D5 free-text interest phrases (no identity) may be sent to the free tier, disclosed in UI; D6 CSRF via SameSite=Lax + Origin check instead of tokens.
 - Official rubric/weights and named NaSCon'26 judges remain unverified. Sponsor-fit evidence is proposed in `spec.md`; research recommendations are not added acceptance gates.
 
 ## Next action
 
-Handoff §2, steps 2–4:
-
-1. Define the primary task, simplest baseline, and observable success/failure cases; add failure-behavior acceptance cases to `spec.md`. In the same pass, ratify or reject the acceptance proposals in [`eynvision.md` § Execution priorities](eynvision.md#execution-priorities): skip as reading overlay (A5/A7), explicit topic feedback for A10, simulated date rollover for A4 (real next-day run is unverifiable before the deadline), failure cases.
-2. Test the dependencies most likely to block delivery: article source access across the web, model access, PDF rendering.
-3. Select a base (or none), record commit and license, pass the base validation gate (handoff §2) within 45 minutes.
-4. Propose a time-boxed schedule to 20:00 freeze for user approval.
+1. User decides the open review items under Blockers (D1–D6).
+2. Write architecture + time-boxed task plan to 20:00 freeze (handoff §2 steps 4–5), then run `/plan-eng-review` on it.
+3. Build the walking skeleton first: today's ingestion → one reader's edition → web + PDF, before backfill, learning or auth polish.
 
 ## Decisions
 
@@ -43,7 +42,7 @@ Handoff §2, steps 2–4:
 - Brief moved to `docs/brief.pdf` plus verbatim `docs/brief.md` | Original filename (apostrophe, spaces) breaks unquoted shell commands; markdown is greppable and cheap to load | Agents read `brief.md`, not the PDF | Organizer issues a revised brief
 - Defer `README.md` | Every required section would be empty | No README until a stack exists | First runnable command exists
 - `CLAUDE.md` only imports `AGENTS.md` | One home for shared agent rules across Claude Code and Codex | Edit rules in `AGENTS.md` only | Clients diverge in needed instructions
-- Python FastAPI + server-rendered Jinja + SQLite; no frontend build; no LangGraph | One template renders web and PDF, so A5 holds by construction; fixed pipeline needs no agent framework | UX quality must come from design, not a component framework (see UX decision, pending) | A required interaction cannot be built without a client framework
+- Python FastAPI + server-rendered Jinja + SQLite; no frontend build; no LangGraph | One template renders web and PDF, so A5 holds by construction; fixed pipeline needs no agent framework | UX quality must come from design, not a component framework (see UX decision below) | A required interaction cannot be built without a client framework
 - Committed edition is immutable; skip is a web-only reading overlay plus a stored event | Preserves edition identity for PDF and archive (eynvision.md priority 4) | PDF and archive always show the full committed edition | Readers need a "skipped-removed" PDF
 - PDF: Playwright Chromium renders the same Jinja template with print CSS; acceptance verified by clicking the web Download control | Chromium already installed; WeasyPrint needs GTK on Windows; one layout source | Chromium is a runtime dependency | Render time or install footprint blocks the demo
 - Error-classified retry policy (spec.md § Failure cases) | Blanket retries waste quota on permanent errors and hide config faults | Each error class has a defined action | A provider returns errors outside the classes
@@ -61,7 +60,6 @@ Handoff §2, steps 2–4:
 - LLM access: Gemini API free tier on one project, primary; fallback chain Ollama Cloud vision model → Codex `codex exec` on the user's ChatGPT login (synthesis only); every model result cached on disk. Rejected: `claude -p` on a subscription (Anthropic docs direct products to API keys) and multiple accounts (OpenRouter, Google and Cerebras terms prohibit circumventing limits) | Only free option accepting text, image, audio and video with JSON output; Pakistan supported | Only public news goes to the free tier, which is "used to improve our products"; never reader profiles | Verified quota proves insufficient for the demo
 - Gemini quota handling: per-model daily budgets in config, adaptive limiter driven by the API's 429 responses, fallback on exhaustion. Verified 2026-10-17 from ai.google.dev rate-limits and pricing pages: limits are "per project, not per API key" and "vary depending on the specific model"; RPD resets at midnight Pacific (12:00 PKT); no free-tier RPM/RPD numbers are published; AI Studio's limit page requires sign-in. Unverified: 20 RPD for 3.8 Flash (forum post) | Design must work without published numbers | First 429 response's quota details are logged; budgets are set from them | Google publishes free-tier numbers
 - Model routing across per-model free budgets: tagging `gemini-3.1-flash-lite`; synthesis `gemini-3.5-flash-lite`; lead stories `gemini-3.8-flash`; in-Gemini fallback `gemini-3.6-flash` → Gemma 4 → `gemini-3-flash-preview`; then Ollama Cloud → Codex. Later: `gemini-3.5-transcribe` (podcast audio), `gemini-3.8-flash-lite-tts` (R5 audio briefing) | Limits are per model within one project, so routing by task multiplies usable budget within normal use | Each model needs its own config entry and budget | A model is unavailable to this project or its output quality fails the spike
-- Sources (supersedes the GDELT-DOC entry below): GDELT GKG 2.1 raw files sampled every 3 h as the across-the-web candidate pool (any past day; titles, direct URLs, images, video embeds, themes); publisher RSS catalog for niche-topic depth; Wayback Machine feed snapshots to backfill the RSS catalog for past days; Google News RSS `after:/before:` for free-text interests at headline level. All files and responses cached on disk; downloaded once, shared by all readers | Spikes: GDELT DOC API unusable on this shared egress; GKG files work without throttle; high-volume RSS reaches only 0–2 days back; cricket had 0 rows in one 15-minute GKG file | 7-day GKG download ≈ 56 files, ~120 MB, ~3 min | Coverage gaps appear for a persona's interests
+- Sources: GDELT GKG 2.1 raw files sampled every 3 h as the across-the-web candidate pool (any past day; titles, direct URLs, images, video embeds, themes); publisher RSS catalog for niche-topic depth; Wayback Machine feed snapshots to backfill the RSS catalog for past days; Google News RSS `after:/before:` for free-text interests at headline level. All files and responses cached on disk; downloaded once, shared by all readers | Spikes: GDELT DOC API unusable on this shared egress; GKG files work without throttle; high-volume RSS reaches only 0–2 days back; cricket had 0 rows in one 15-minute GKG file | 7-day GKG download ≈ 56 files, ~120 MB, ~3 min | Coverage gaps appear for a persona's interests
 - Source quality gate: deterministic domain allowlist (catalog domains + most frequent news domains in GKG); unknown domains may only fill exploring slots | GKG includes every English-language site, including spam | Allowlist must be built before ranking | A persona's niche is served mainly by unlisted domains
-- Sources: GDELT DOC 2.0 (date-scoped, ≤1 request per 5 s, plain HTTP from this machine) + Google News RSS `after:/before:` for backfill and interests; publisher RSS for today's items and lead images; YouTube channel RSS in stage 2; HN Algolia and Wikipedia daily Current events as extra day-specific sources; one cached fetch per day shared by all readers. RSS is not required by the brief | Backfill needs date-scoped retrieval that RSS lacks | GDELT throttle bounds fetch time; image fields unconfirmed until spike | Spike shows GDELT lacks needed fields or availability
 - Sponsor portfolio informs quality tradeoffs, not a product pivot | Public evidence supports practical AI workflows but establishes no internal news-tool demand or private rubric | Preserve R1–R4; validate proposed semantics before changing acceptance cases | Organizer provides new requirements or sponsor/user validation changes the target
