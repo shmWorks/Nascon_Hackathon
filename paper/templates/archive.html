@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Archive — Morning Paper{% endblock %}
+{% block body %}
+<h1>Your editions</h1>
+{% if not editions %}<p class="lede">No editions yet. Your first one is being printed.</p>{% endif %}
+<table>
+  {% for e in editions %}
+  <tr>
+    <td style="white-space:nowrap"><a href="/edition/{{ e.id }}">{{ e.day | longdate }}</a></td>
+    <td>{{ e.lead }}</td>
+    <td class="muted">{{ 'Live' if e.kind == 'live' else 'Backfilled' }}</td>
+    <td>{% if e.pdf %}<a href="/editions/{{ e.id }}.pdf" download>PDF</a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

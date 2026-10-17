@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The {{ e.reader }} Morning — {{ e.day | longdate }}</title>
+<style>
+  :root { --ink:#141414; --muted:#5d5d5d; --rule:#d9d4c7; --paper:#fbf8f1; --accent:#8a1c1c; --ok:#1f6b3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family: Georgia, "Times New Roman", serif; line-height:1.45; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 48px; }
+  nav { display:flex; gap:18px; justify-content:flex-end; padding:10px 20px; font: 14px system-ui, sans-serif; border-bottom:1px solid var(--rule); }
+  nav a { color:var(--ink); text-decoration:none; } nav a:hover { text-decoration:underline; }
+  .mast { text-align:center; border-bottom: 4px double var(--ink); padding: 18px 0 10px; margin-bottom: 14px; }
+  .mast h1 { font-size: clamp(34px, 6vw, 60px); margin: 0; letter-spacing: .5px; font-weight: 700; }
+  .mast .meta { font: 13px system-ui, sans-serif; color: var(--muted); display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:6px; }
+  .badge { font: 11px system-ui, sans-serif; text-transform:uppercase; letter-spacing:.6px; padding:2px 7px; border:1px solid var(--muted); border-radius:3px; color:var(--muted); }
+  .badge.live { color:var(--ok); border-color:var(--ok); }
+  .notice { font: 13px system-ui, sans-serif; background:#fff3cd; border:1px solid #e6d28c; padding:8px 12px; margin:10px 0; }
+  .things { border:2px solid var(--ink); padding:12px 16px; margin: 0 0 18px; background:#fff; }
+  .things h2 { font: 700 13px system-ui, sans-serif; text-transform:uppercase; letter-spacing:1px; margin:0 0 8px; }
+  .things ol { margin:0; padding-left: 20px; } .things li { margin: 4px 0; }
+  .lead { display:grid; grid-template-columns: 1.3fr 1fr; gap: 22px; border-bottom:1px solid var(--ink); padding-bottom: 16px; margin-bottom: 16px; }
+  .lead h2 { font-size: clamp(26px, 3.6vw, 38px); line-height:1.12; margin: 4px 0 8px; }
+  .lead img, .story img { width:100%; max-height: 340px; object-fit: cover; background:#eee; }
+  .section-head { font: 700 13px system-ui, sans-serif; text-transform: uppercase; letter-spacing: 1.2px; border-top: 2px solid var(--ink); border-bottom:1px solid var(--rule); padding: 6px 0; margin: 18px 0 10px; }
+  .cols { column-count: 3; column-gap: 26px; column-rule: 1px solid var(--rule); }
+  .story { break-inside: avoid; margin: 0 0 18px; }
+  .story h3 { font-size: 21px; line-height:1.2; margin: 2px 0 6px; }
+  .story h3 a, .lead h2 a { color: inherit; text-decoration: none; } .story h3 a:hover, .lead h2 a:hover { text-decoration: underline; }
+  .dek { margin: 0 0 8px; }
+  .why { font: italic 12.5px system-ui, sans-serif; color: var(--muted); margin: 4px 0; }
+  .claims { margin: 6px 0; padding-left: 18px; font-size: 15px; }
+  .claims li { margin: 4px 0; }
+  .src { font: 11px system-ui, sans-serif; color: var(--accent); white-space: nowrap; }
+  .quote { display:block; font-size: 12.5px; color: var(--muted); border-left: 2px solid var(--rule); padding-left: 8px; margin-top: 2px; }
+  .trust { font: 12px system-ui, sans-serif; color: var(--ok); margin: 6px 0 2px; }
+  .sources { font: 12px system-ui, sans-serif; color: var(--muted); }
+  .sources a { color: var(--muted); }
+  .imgnote { font: 12.5px system-ui, sans-serif; color: var(--muted); margin: 4px 0; }
+  .controls { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; font: 12px system-ui, sans-serif; }
+  .controls button, .controls a.btn { font: inherit; border:1px solid var(--rule); background:#fff; padding:4px 9px; border-radius:14px; cursor:pointer; color:var(--ink); text-decoration:none; }
+  .controls button:hover, .controls a.btn:hover { border-color: var(--ink); }
+  .controls button.on { background: var(--ink); color: #fff; }
+  .story.skipped { display:none; }
+  .done { text-align:center; border-top: 4px double var(--ink); margin-top: 26px; padding: 18px; font-size: 20px; }
+  .done small { display:block; font: 13px system-ui, sans-serif; color: var(--muted); margin-top: 6px; }
+  .explore { border-top: 1px dashed var(--muted); padding-top: 6px; }
+  @media (max-width: 820px) { .cols { column-count: 1; } .lead { grid-template-columns: 1fr; } }
+  @media print { nav, .controls, .notice.web-only { display:none !important; } body { background:#fff; } .cols { column-count: 3; } .story img { max-height: 160px; } .lead img { max-height: 260px; } }
+  {% if print_mode %} nav, .controls { display:none !important; } body { background:#fff; } {% endif %}
+</style>
+</head>
+<body>
+{% if not print_mode %}
+<nav><a href="/">Today</a><a href="/archive">Archive</a><a href="/profile">What your paper learned</a>{% if pdf %}<a id="download" href="/editions/{{ eid }}.pdf" download>Download PDF</a>{% endif %}<a href="/logout">Sign out</a></nav>
+{% endif %}
+<div class="wrap" data-edition="{{ eid }}">
+  <header class="mast">
+    <h1>The {{ e.reader }} Morning</h1>
+    <div class="meta"><span>{{ e.day | longdate }}</span>
+      <span class="badge {{ e.kind }}">{{ 'Live edition' if e.kind == 'live' else 'Backfilled edition' }}</span>
+      <span>{{ e.stories|length }} stories · {{ e.stories|map(attribute='items')|map('length')|sum }} sources</span>
+    </div>
+  </header>
+  {% if e.sources_unavailable %}<div class="notice">{{ e.sources_unavailable }} source articles could not be read today; those stories show headlines and links only.</div>{% endif %}
+  {% if not print_mode and not pdf %}<div class="notice web-only">The PDF for this edition is not available right now. <a href="/editions/{{ eid }}/render">Try again</a></div>{% endif %}
+
+  {% if e.three_things %}
+  <section class="things"><h2>Three things to know</h2><ol>{% for t in e.three_things %}<li>{{ t }}</li>{% endfor %}</ol></section>
+  {% endif %}
+
+  {% macro story_body(s, lead=False) %}
+    {% if lead %}<h2>{% else %}<h3>{% endif %}<a href="{{ s['items'][0].url }}" target="_blank" rel="noopener" data-act="click">{{ s.headline }}</a>{% if lead %}</h2>{% else %}</h3>{% endif %}
+    <p class="dek">{{ s.dek }}</p>
+    {% if s.status == 'summary_unavailable' %}<div class="notice">Summary unavailable — showing the source headline only.</div>{% endif %}
+    {% if s.claims %}
+      <ul class="claims">{% for c in s.claims %}<li>{{ c.text }} {% for i in c.item_ids %}{% if s['items'][i] %}<span class="src">[{{ s['items'][i].domain }}]</span>{% endif %}{% endfor %}<span class="quote">“{{ c.quote }}”</span></li>{% endfor %}</ul>
+    {% endif %}
+    {% if s.image_note %}<p class="imgnote">In the image: {{ s.image_note }}</p>{% endif %}
+    {% if s.status == 'synthesized' %}<div class="trust">✓ {{ s.claims|length }} of {{ s.claims_total }} claims verified against sources · {{ s['items']|length }} source{{ 's' if s['items']|length != 1 }}</div>{% endif %}
+    <div class="sources">{% for it in s['items'] %}<a href="{{ it.url }}" target="_blank" rel="noopener" data-act="click">{{ it.domain }}</a>{{ ' · ' if not loop.last }}{% endfor %}</div>
+    <p class="why">{{ s.why }}</p>
+    <div class="controls">
+      <a class="btn" href="{{ s['items'][0].url }}" target="_blank" rel="noopener" data-act="click">Read original</a>
+      <button data-act="more">More like this</button><button data-act="less">Less like this</button>
+      <button data-act="save">Save</button><button data-act="skip">Skip</button>
+    </div>
+  {% endmacro %}
+
+  <article class="lead story" data-idx="{{ e.lead.idx }}">
+    <div>{{ story_body(e.lead, True) }}</div>
+    <div>{% if e.lead.image_url %}<img src="{{ e.lead.image_url }}" alt="" loading="{{ "eager" if print_mode else "lazy" }}" onerror="this.remove()">{% endif %}</div>
+  </article>
+
+  {% for sec in e.sections %}
+    <div class="section-head">{{ sec.topic }}</div>
+    <div class="cols">
+    {% for s in sec.stories %}
+      <article class="story{{ ' explore' if s.exploring }}" data-idx="{{ s.idx }}">
+        {% if s.image_url and loop.first %}<img src="{{ s.image_url }}" alt="" loading="{{ "eager" if print_mode else "lazy" }}" onerror="this.remove()">{% endif %}
+        {{ story_body(s) }}
+      </article>
+    {% endfor %}
+    </div>
+  {% endfor %}
+
+  <div class="done">You're caught up.<small>That's today's paper. Your next edition arrives tomorrow morning.</small></div>
+</div>
+{% if not print_mode %}
+<script>
+(() => {
+  const ed = document.querySelector('[data-edition]').dataset.edition;
+  const send = (type, idx, payload) => navigator.sendBeacon('/events', new Blob([JSON.stringify({edition_id:+ed, story_idx:idx, type, payload:payload||{}})], {type:'application/json'}));
+  const visible = new Map(), dwell = new Map(), seen = new Set();
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    const idx = +en.target.dataset.idx;
+    if (en.intersectionRatio >= 0.5) {
+      visible.set(idx, performance.now());
+      setTimeout(() => { if (visible.has(idx) && !seen.has(idx)) { seen.add(idx); send('seen', idx); } }, 1000);
+    } else if (visible.has(idx)) {
+      dwell.set(idx, (dwell.get(idx)||0) + (performance.now() - visible.get(idx))/1000); visible.delete(idx);
+    }
+  }), {threshold:[0, 0.5]});
+  document.querySelectorAll('article[data-idx]').forEach(a => io.observe(a));
+  document.addEventListener('click', ev => {
+    const el = ev.target.closest('[data-act]'); if (!el) return;
+    const art = el.closest('article[data-idx]'); if (!art) return;
+    const idx = +art.dataset.idx, act = el.dataset.act;
+    send(act, idx);
+    if (act === 'skip') art.classList.add('skipped');
+    if (el.tagName === 'BUTTON' && act !== 'skip') { el.classList.add('on'); el.textContent = act === 'save' ? 'Saved' : 'Noted'; }
+  });
+  addEventListener('pagehide', () => {
+    visible.forEach((t, idx) => dwell.set(idx, (dwell.get(idx)||0) + (performance.now()-t)/1000));
+    dwell.forEach((s, idx) => { if (s >= 2) send('dwell', idx, {seconds: Math.round(s)}); });
+  });
+})();
+</script>
+{% endif %}
+</body>
+</html>

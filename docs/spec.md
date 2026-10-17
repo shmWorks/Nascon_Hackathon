@@ -177,11 +177,11 @@ Official criteria and weights are undisclosed. Criteria below are **provisional*
 
 | Criterion (provisional) / weight | Evidence required | Current proof | Gap / next action |
 | --- | --- | --- | --- |
-| R1 Onboarding / unknown | Browser walkthrough: new reader → first edition (A1) | None | Design onboarding |
-| R2 Personalized newspaper PDF / unknown | PDF artifact; two-reader comparison (A2–A4) | None | Choose PDF rendering path; test it early |
-| R3 Web reading experience / unknown | Browser walkthrough of A5–A9 | None | Build after first vertical slice |
-| R4 Learning / unknown | Same-reader before/after editions (A10) | None | Define signals and update rule |
+| R1 Onboarding / unknown | Browser walkthrough: new reader → first edition (A1) | Browser QA 18:05: sign-up → onboarding (chips + free text, F5 blocked) → edition built | Calibration step deferred (C) |
+| R2 Personalized newspaper PDF / unknown | PDF artifact; two-reader comparison (A2–A4) | 21 PDFs for 3 personas x 7 days; per-reader masthead, lead, sections by interest | — |
+| R3 Web reading experience / unknown | Browser walkthrough of A5–A9 | Browser QA: skip overlay, feedback, download, archive; same template for web and PDF | — |
+| R4 Learning / unknown | Same-reader before/after editions (A10) | Persona simulation nDCG@10 beats onboarding-only for 3/3 personas (state.md) | Real-reader evidence impossible before deadline |
 | R5 Exploration / unknown | Demoed feature beyond core | None | Only after R1–R4 have proof |
-| End-to-end MVP completeness / unknown | Fresh-terminal run: onboarding → edition → PDF → signal → next edition | None | First vertical slice |
+| End-to-end MVP completeness / unknown | Fresh-terminal run: onboarding → edition → PDF → signal → next edition | Local run end to end; CI green | Deployed run |
 | Deployed, CI/CD, paid-grade value / required (E1-E3) | Live URL; green CI run on `main`; felt-outcome evidence on screen (Solution table) | None | Host decision; Dockerfile; workflow |
 | Fit for Eynvision / unknown | Proposed evidence: usable workflow, source traceability, matched editions and observable adaptation; rationale: [sponsor research](eynvision.md) | Public-source research complete; no product proof | Validate R1–R4 first; sponsor patterns guide tradeoffs, not official scoring |

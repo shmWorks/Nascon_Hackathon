@@ -1,0 +1,35 @@
+graph LR
+  subgraph Sources["Sources (shared, once per day)"]
+    GKG["GDELT GKG files<br/>whole web, any past day"]
+    RSS["Publisher RSS catalog"]
+  end
+  subgraph Shared["Shared day pipeline"]
+    ING["ingest + allowlist<br/>edition window 06:00 PKT"]
+    EMB["local embeddings<br/>model2vec, no quota"]
+  end
+  subgraph Reader["Per reader, per day"]
+    RANK["rank: Beta posteriors<br/>x topic relevance rank"]
+    CL["cluster + select<br/>stories + exploring slots"]
+    RET["retrieve text<br/>feed, direct, Jina, Wayback<br/>title-match check"]
+    SYN["synthesize with Gemini<br/>claims + verbatim quotes"]
+    VER["verify quotes in code<br/>drop unverified claims"]
+    COM["commit immutable edition<br/>three things to know"]
+  end
+  subgraph Out["Delivery"]
+    WEB["web edition"]
+    PDF["newspaper PDF<br/>same template"]
+  end
+  EV[("append-only<br/>event log")]
+  PROF["profile = fold of events<br/>topic + source posteriors"]
+  GW{{"LLM + fetch gateways<br/>cache, retry, timeouts"}}
+
+  GKG --> ING
+  RSS --> ING
+  ING --> EMB --> RANK
+  RANK --> CL --> RET --> SYN --> VER --> COM
+  COM --> WEB
+  COM --> PDF
+  WEB -- "seen, click, dwell, skip, more/less" --> EV
+  EV --> PROF --> RANK
+  RET -.-> GW
+  SYN -.-> GW

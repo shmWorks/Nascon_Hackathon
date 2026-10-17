@@ -2,11 +2,18 @@
 
 Authoritative for verified status, blockers, next action and consequential decisions. Update when a milestone passes or fails, a blocker changes, a decision changes, or work is handed off. Requirement IDs (R*, A*) refer to [`spec.md`](spec.md).
 
-Last updated: 2026-10-17 17:05 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
+Last updated: 2026-10-17 18:08 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Verified status
 
 - Grilling complete (15 decisions, below) and adversarial review of spec/state complete; review decisions D1–D6 ratified. Architecture: [`README.md` § Architecture](../README.md#architecture).
+- **Built and verified (18:08):** M0–M4 code on branch `feat/mvp` (PR #2), CI green on GitHub. 15 offline tests pass; guard tests killed by mutation (citation check, retrieval acceptance).
+  - Demo: 3 personas x 7 days = 21 committed editions (2026-10-11…17), all with PDFs; stories synthesized with code-verified quotes or honestly link-only; 0 "summary unavailable" in demo editions.
+  - Browser QA (local): sign-up, onboarding incl. F5, first edition built in background, skip overlay (A7), more-like-this, viewport `seen` + dwell + skip + more events stored, PDF download as attachment (A8), archive (A9), cross-origin POST rejected (D6), other reader's PDF 404.
+  - A10 persona simulation, nDCG@10 mean over 7 days (learned / onboarding-only / recency / random): Ayesha 0.939 / 0.747 / 0.155 / 0.126; Bilal 0.890 / 0.837 / 0.146 / 0.104; Sara 0.789 / 0.776 / 0.113 / 0.142. Simulator and model share an author: proves the mechanism learns under stated assumptions, not real-reader value.
+  - Defects found and fixed during build: cache write race under parallel builds; Gemini request with no timeout hung the pipeline; message-substring error classification retried a programming error; first-edition "preparing" could spin forever after a restart; topic chips unreachable by keyboard; retry ignored server `retryDelay` and per-day quota.
+  - Gemini quota verified by probe: per project per model; `gemini-3.6-flash` daily free limit = 20 requests (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`).
+  - Not done: deployment (Render authorization pending with user).
 - Brief extracted: [`brief.md`](brief.md) (verbatim) and [`spec.md`](spec.md) (requirements, acceptance cases, provisional judge mapping).
 - Stack installed: uv project (`pyproject.toml`, `uv.lock`), Python 3.14.4; FastAPI, Jinja2, httpx, feedparser, Playwright, google-genai, argon2-cffi import cleanly. No base repository; no application code yet.
 - Spikes (2026-10-17, scripts in `spikes/`):
