@@ -90,7 +90,7 @@
 
   <article class="lead story" data-idx="{{ e.lead.idx }}">
     <div>{{ story_body(e.lead, True) }}</div>
-    <div>{% if e.lead.image_url %}<img src="{{ e.lead.image_url }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}</div>
+    <div>{% if e.lead.image_url %}<img src="{{ e.lead.image_url }}" alt="" loading="{{ "eager" if print_mode else "lazy" }}" onerror="this.remove()">{% endif %}</div>
   </article>
 
   {% for sec in e.sections %}
@@ -98,7 +98,7 @@
     <div class="cols">
     {% for s in sec.stories %}
       <article class="story{{ ' explore' if s.exploring }}" data-idx="{{ s.idx }}">
-        {% if s.image_url and loop.first %}<img src="{{ s.image_url }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}
+        {% if s.image_url and loop.first %}<img src="{{ s.image_url }}" alt="" loading="{{ "eager" if print_mode else "lazy" }}" onerror="this.remove()">{% endif %}
         {{ story_body(s) }}
       </article>
     {% endfor %}

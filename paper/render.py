@@ -29,7 +29,7 @@ def pdf_for(eid: int) -> str | None:
         with sync_playwright() as p:
             b = p.chromium.launch()
             page = b.new_page()
-            page.set_content(html, wait_until="load", timeout=30000)
+            page.set_content(html, wait_until="networkidle", timeout=45000)
             page.pdf(path=str(path), format="A4", print_background=True, margin={"top": "12mm", "bottom": "12mm", "left": "10mm", "right": "10mm"})
             b.close()
     except Exception as e:  # noqa: BLE001 — PDF failure must never take the edition down (F4)

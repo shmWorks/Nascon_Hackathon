@@ -24,6 +24,7 @@ def main():
     d = sub.add_parser("demo", help="seed personas and build 7 days of editions with simulated signals")
     d.add_argument("--days", type=int, default=7)
     sub.add_parser("evaluate", help="persona simulation: learning vs baselines (A10)")
+    sub.add_parser("export-demo", help="write demo_data/ for the deployed host")
     a = p.parse_args()
 
     db.init()
@@ -47,6 +48,10 @@ def main():
         from . import simulate
 
         print(simulate.evaluate())
+    elif a.cmd == "export-demo":
+        from . import export
+
+        print(export.export(config.ROOT / "demo_data"))
 
 
 if __name__ == "__main__":
