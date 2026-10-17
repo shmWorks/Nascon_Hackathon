@@ -1,0 +1,21 @@
+[
+  "https://feeds.bbci.co.uk/news/world/rss.xml",
+  "https://feeds.bbci.co.uk/news/technology/rss.xml",
+  "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",
+  "https://feeds.bbci.co.uk/news/business/rss.xml",
+  "https://feeds.bbci.co.uk/sport/cricket/rss.xml",
+  "https://www.theguardian.com/technology/rss",
+  "https://www.theguardian.com/environment/rss",
+  "https://www.theguardian.com/business/rss",
+  "https://www.theguardian.com/science/rss",
+  "https://www.theguardian.com/sport/cricket/rss",
+  "https://www.dawn.com/feeds/home",
+  "https://techcrunch.com/feed/",
+  "https://techcrunch.com/category/artificial-intelligence/feed/",
+  "https://feeds.arstechnica.com/arstechnica/index",
+  "https://www.space.com/feeds/all",
+  "https://www.sciencedaily.com/rss/space_time.xml",
+  "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+  "https://www.carbonbrief.org/feed/",
+  "https://www.nasa.gov/news-release/feed/"
+]

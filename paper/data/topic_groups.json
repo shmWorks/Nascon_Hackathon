@@ -1,0 +1,7 @@
+[
+  ["World & Pakistan", ["world", "politics", "pakistan", "south-asia", "conflict", "crime-law", "disaster", "society", "religion"]],
+  ["Business & tech", ["economy", "markets", "startups", "tech-industry", "ai", "cybersecurity", "crypto", "energy", "labour"]],
+  ["Science & planet", ["science-tech", "space", "astronomy", "biology-medicine", "health", "climate", "environment", "weather", "education"]],
+  ["Sport", ["sport", "cricket", "football", "tennis", "motorsport"]],
+  ["Culture & life", ["arts-culture", "film-tv", "gaming", "lifestyle", "human-interest"]]
+]

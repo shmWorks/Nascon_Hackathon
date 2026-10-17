@@ -1,6 +1,6 @@
 .git
 .venv
-data
-spikes
+/data
+/spikes
 __pycache__
 .env
