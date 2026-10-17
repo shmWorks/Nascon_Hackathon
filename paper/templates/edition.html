@@ -105,6 +105,7 @@
     </div>
   {% endfor %}
 
+  {% if e.empty_topics %}<p class="why" style="text-align:center">No stories today for {{ e.empty_topics|join(", ") }}.</p>{% endif %}
   <div class="done">You're caught up.<small>That's today's paper. Your next edition arrives tomorrow morning.</small></div>
 </div>
 {% if not print_mode %}
