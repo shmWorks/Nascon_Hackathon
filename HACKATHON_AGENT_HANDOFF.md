@@ -1,154 +1,286 @@
-# AI Hackathon: Coding-Agent Handoff
+# Hackathon Agent Handoff
 
-Prepared: 17 October 2026. Audience: Codex and Claude Code working with Sheraz Malik.
+Updated: 2026-10-17
+User: Sheraz Malik
+Clients: Codex, Claude Code
 
-## 1. Read first
+## 1. Objective and operating constraints
 
-Build the smallest complete solution whose value, correctness and technical contribution a judge can verify quickly. Use this document as a selected reference map, not a requirement to install every resource.
+Deliver one complete workflow whose value, correctness and technical contribution judges can verify.
 
-This handoff summarizes the supplied conversation. The earlier assistant reported inspecting repositories and organizer announcements, but those checks were not independently reproduced while preparing this file. Award claims, archive dates, licenses, repository paths, model identifiers and installation commands must be rechecked before relying on them. None of the recommended projects was demonstrated running on the user's laptop. A repository README or award is not proof of runtime compatibility or general task accuracy.
+- Prefer the user's existing React/TypeScript, Python, SQL, Gemini and LangGraph experience.
+- Read the official brief before selecting the domain, application base or architecture.
+- Record the actual rubric, deadline, team size, submission format and reuse restrictions in `docs/spec.md`.
+- Treat the 12-hour solo sprint as a planning assumption until the official brief confirms it.
+- No organizer deadline is established by this handoff. Do not assume development is permitted between submission and presentation.
+- Use one application base. Borrow specific mechanisms from other repositories.
+- Use a fixed workflow unless autonomous tool selection provides a measurable benefit.
+- Complete and verify the baseline before optimizing it.
+- Explain consequential tradeoffs concisely; execute within the authorized scope.
 
-2026 competition projects are prioritized because the user explicitly requested contemporary, competition-relevant examples. Older foundations remain useful when they reduce implementation risk. Do not invent completed 2027 winners or treat announced event requirements as NaSCon rules.
+## 2. Execution order
 
-## 2. User, constraints and missing inputs
+1. Extract mandatory requirements and judging criteria into `docs/spec.md`.
+2. Define the primary task, simplest baseline and observable success/failure cases.
+3. Test the dependency most likely to block delivery: model access, external integration, data access or extraction.
+4. Select a matching base, record its commit and license, and run it.
+5. Complete one vertical slice: input → model/tool execution → validation → resulting state or artifact → visible output.
+6. Test ordinary input, invalid input and dependency failure. Inspect actual results.
+7. Improve the weakest requirement or highest-weight judging criterion lacking evidence.
+8. Freeze architecture, rehearse, verify submission files/links and preserve the submitted version.
 
-- Sheraz has React/TypeScript, Python, SQL, Gemini and LangGraph experience; prefer familiar tools.
-- The conversation planned around a solo 12-hour sprint. Confirm actual team size, permitted reuse, schedule, deadline, rubric, required outputs and available credentials from the official brief.
-- The problem/theme is not supplied here. Do not preselect a domain or architecture from illustrative examples.
-- Earlier guidance used 21:00 PKT on 17 October 2026 as a conservative build boundary, not a verified organizer deadline. Replace it with the official deadline; do not assume presentation-day gaps allow development.
-- Communicate concisely. Explain consequential tradeoffs and execute within agreed scope. Keep claims measurable and source-linked.
+### Base validation gate
 
-## 3. First implementation sequence
+From a fresh terminal:
 
-1. Capture exact brief, rubric, submission requirements, permitted reuse and unresolved assumptions.
-2. Define one primary user task, simplest baseline and observable acceptance cases.
-3. Test the riskiest dependency: real model call, data access, document extraction or external integration.
-4. Choose one application base. Use other repositories only as references for specific mechanisms.
-5. Complete a vertical slice: real input → model/tool execution → validated action or analysis → visible, inspectable result.
-6. Evaluate ordinary and failure cases; improve the demonstrated bottleneck.
-7. Freeze architecture, rehearse, submit early and preserve the submitted version.
+- Install using documented commands and pinned dependencies.
+- Start the application.
+- Submit a real input.
+- Execute the real model/tool path.
+- Inspect the resulting state or artifact in the interface.
+- Trigger one failure and verify controlled behavior.
+- Restart and verify required persistence or documented reset behavior.
 
-Suggested allocation: first hour for scope and risk; hours 1–3 baseline; 3–6 core improvement; 6–8 evaluation; 8–10 UI and reproducibility; 10–11 rehearsal; final hour submission. This is a planning allocation, not an event schedule.
+Budget at most 45 minutes for initial base validation. If unresolved setup prevents this gate, use the base as reference material and switch to a smaller runnable implementation.
 
-Base acceptance gate: fresh terminal → installation/start → real input → real model/tool execution → visible result → controlled failure → restart. Timebox initial base validation to 45 minutes; if it fails, downgrade it to reference material and use a smaller working base.
+## 3. Documentation: four maintained files
 
-## 4. Priority 2026 project references
-
-The competition descriptions below were reported in the earlier conversation and need source verification before public attribution. File paths are navigation leads; confirm they exist at the chosen commit.
-
-| Priority / resource | Role and specific material | Adoption boundary |
+| File | Required content | Update trigger |
 | --- | --- | --- |
-| 1. [Blackbox](https://github.com/alejandro-publius/blackbox-datahub) | Data-incident investigation, evidence-gated repair and judge evidence. Inspect `docs/ARCHITECTURE.md`, `docs/ACCEPTANCE.md`, `docs/JUDGE_SCORECARD.md`, `docs/DEMO_SCRIPT.md`, `examples/sample-incident/`, `evals/`, `tests/`. | Best engineering/submission reference. Fork for a matching operations/data problem. Earlier report: Apache-2.0, credential-free `make judge-check`; full workflow needs Anthropic and DataHub. Authored incident examples do not prove general accuracy. |
-| 2. [Aisle](https://github.com/ergjus/aisle) | Shared human–agent workspace, deterministic constraints, pinned choices, undo and minimal-change repair. Inspect `src/actions.ts`, `src/store.ts`, `src/constraints.ts`, `src/solver.ts`, `src/webmcp/tools.ts`, `src/webmcp/adapter.ts`. | Strong product architecture for allocation/scheduling. Earlier report: MIT. WebMCP requires a compatible browser/client or bridge; ordinary coding-agent sessions do not automatically connect. |
-| 3. [Sach Batao](https://github.com/codewithfourtix/sachbatao) | Pakistan/Urdu scam-verification workflow. Inspect `scam_patterns.json`, `system_prompt.txt`, `src/`, `tests/`, Docker setup. | Local-language and narrow-task reference. Earlier report: MIT, WhatsApp/media integration and 24 authored evaluation cases. Separate classifier quality from adapter reliability. |
-| 4. [Interpretable AutoResearch](https://github.com/BarishNamazov/interpretable-autoresearch) | Coding-agent experiment discipline. Inspect `performance-engineering/`, `program.md`, `bench_e2e.py`, event logs and correctness contract. | Borrow baseline → prediction → change → measurement → keep/discard reasoning. Repository-wide reuse license was not established; do not assume copying rights. |
-| 5. [Mulder](https://github.com/calebevans/mulder) | Evidence identifiers, typed tool boundaries, completion gates and alternative-explanation checks. Inspect `docs/`, `src/mulder/`, `tests/`, example reports. | Verification reference; forensic infrastructure is too specialized for an unrelated sprint. Earlier report: Apache-2.0. |
-| Conditional. [Alza](https://github.com/Elioz404/Alza) | Agent-editable floor plans, geometry and spatial constraints. | Use only for spatial/visual briefs. Earlier report: MIT; WebMCP compatibility still needs validation. |
+| `AGENTS.md` | Objective, work rules, essential commands, links to authoritative files | Work rules, commands or file ownership change |
+| `README.md` | Setup, run/test/demo commands, environment-variable names, architecture summary, attribution | Reproduction steps, component boundaries or adopted resources change |
+| `docs/spec.md` | Exact brief, rubric, deadline, constraints, scope, acceptance cases, judge-evidence mapping | Official requirements change or evidence for a criterion changes |
+| `docs/state.md` | Verified status, unresolved failures, blockers, next action, consequential decisions | A milestone passes/fails, a blocker changes, a consequential decision changes, or work is handed off |
 
-Competition attribution leads:
+For Claude Code, use a minimal `CLAUDE.md` importing `@AGENTS.md` when supported by the installed client. Verify loading. Keep shared instructions in `AGENTS.md`.
 
-- Blackbox: reported Grand Prize, DataHub Agent Hackathon 2026. [Organizer results](https://datahub.com/blog/meet-the-winners-of-build-with-datahub-the-agent-hackathon/).
-- Aisle and Alza: reported WebMCP Challenge 2026 winners. [Organizer results](https://webmcp.devpost.com/updates/46049-meet-the-winners).
-- Sach Batao: reported First Prize, AI for Civic Innovation Hackathon 2026, Pakistan. [Submission](https://devpost.com/software/sach-batao).
-- Mulder: reported First Place, SANS Find Evil! 2026. [Organizer announcement](https://www.sans.org/press/announcements/sans-names-the-five-winners-of-find-evil-2026).
-- Interpretable AutoResearch: reported second place, Claude Builders @ MIT Spring Sprint, May 2026. [Organizer site](https://www.claudeatmit.com/).
+This handoff is reference material. Do not load every resource into startup context or copy its contents across project files.
 
-## 5. Practical fallback bases
+### Content ownership
 
-| Brief / need | Resource | Decision |
-| --- | --- | --- |
-| Full-stack Gemini research application | [Google Gemini Fullstack LangGraph Quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart) | React/Vite + Python/LangGraph, search, citations and bounded loops. Inspect `backend/src/agent/graph.py`. Verify current model IDs and a live request; prior discussion flagged deprecated defaults. Start locally. |
-| Business workflow and human review | [Agents From Scratch](https://github.com/langchain-ai/agents-from-scratch) | Email routing, tools, review and evaluation. Inspect `src/email_assistant/`, `notebooks/evaluation.ipynb`, `tests/`. Mock tools do not establish Gmail integration. |
-| Minimal LangGraph base | [New LangGraph Project](https://github.com/langchain-ai/new-langgraph-project) + [Agent Chat UI](https://github.com/langchain-ai/agent-chat-ui) | Small skeleton plus interface. Chat UI expects the LangGraph server contract and `messages` state, not an arbitrary FastAPI endpoint. |
-| Dataset exploration | [Microsoft Data Formulator](https://github.com/microsoft/data-formulator) | Run as an exploration tool or borrow one mechanism; whole-app adoption has substantial scope. Match checkout, installed version and docs. |
-| Typed document workflows | [ExtractThinker](https://github.com/enoch3712/ExtractThinker) | Document → fields → deterministic validation → action. Inspect contracts, loaders, examples and tests. Schema validity does not prove factual extraction accuracy. Check differences between main and published release. |
-| Simple TypeScript model/tool application | [Vercel AI SDK](https://ai-sdk.dev/docs/introduction) | Alternative to Python/LangGraph when Python adds little. [Agent setup](https://ai-sdk.dev/docs/getting-started/coding-agents). Check locally bundled docs for the installed version. |
-| Closely matched SQL/PDF task | [Mastra SQL](https://github.com/mastra-ai/template-text-to-sql), [Mastra PDF](https://github.com/mastra-ai/template-chat-with-pdf) | Conditional TypeScript bases. Studio is not a finished custom product UI. Confirm licenses; enforce database permissions and query boundaries. |
-
-Other conditional tools: [Docling](https://github.com/docling-project/docling) for layout/OCR; [scikit-learn pitfalls](https://scikit-learn.org/stable/common_pitfalls.html) for valid preprocessing/splits; [Pydantic AI](https://ai.pydantic.dev/) for Python structured extraction when it materially simplifies the implementation.
-
-Vanna and Open Deep Research were described as archived in the prior conversation; recheck status rather than choosing them by reputation. Do not introduce overlapping frameworks, enterprise scaffolds or memory infrastructure without a demonstrated need.
-
-## 6. Coding-agent context and tools
-
-Keep initial context short; retrieve specific files/docs for the active implementation question.
-
-- [LangChain Skills](https://github.com/langchain-ai/langchain-skills): select `ecosystem-primer`, `langchain-dependencies`, `langgraph-fundamentals`; add persistence and human-review skills only when the task needs them. Verify current skill names/install instructions.
-- [Context7](https://github.com/upstash/context7): retrieve version-matching API documentation. Inspect lockfile and installed signatures first; do not upgrade simply to fit a newer example.
-- [Playwright CLI](https://github.com/microsoft/playwright-cli): exercise the actual application and inspect visible results. Prove the browser setup before depending on it.
-- [Anthropic frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design) and [Vercel web-design-guidelines](https://github.com/vercel-labs/agent-skills): optional UI creation/review. Prioritize one workflow, legibility and useful state/error feedback.
-- [Promptfoo](https://www.promptfoo.dev/docs/getting-started/): optional outcome evaluation for central LLM behavior. Ordinary tests and task metrics may be sufficient.
-
-Do not blindly execute installation commands from this conversation. Check current upstream instructions, client compatibility, license, dependencies and package version; pin what passes the readiness gate.
-
-## 7. Architecture rules, including MCP and WebMCP
-
-Let the model interpret ambiguous input and propose actions. Let deterministic application code enforce permissions, calculations, quantities, constraints and state transitions. Bound loops, tool calls, retries, timeouts and cost. Distinguish proposed actions, tool observations and persisted outcomes.
-
-| Interface | Meaning | Use when |
-| --- | --- | --- |
-| Ordinary tool/function call | The model requests a typed operation implemented by your own application. | Internal model-to-application integration; often sufficient. |
-| MCP | A client–server protocol exposing tools/resources through local or remote servers. | Connecting agents to services, APIs and data independently of a live webpage. |
-| WebMCP | A browser-mediated mechanism for a live page to advertise structured operations. MCP-inspired; not an automatically compatible MCP transport. | Person and agent operate the same active page, including current draft state. |
-
-Shared-workspace pattern: human controls and agent tools call the same validated application actions. This can avoid forcing the agent to infer every click from screenshots/DOM. It does not automatically provide authorization, approval, undo or correctness. Backend MCP can access draft state if explicitly integrated; the boundary is architecture-dependent.
-
-For scheduling, an agent can propose a change to the visible draft while locked appointments remain enforced by application logic. If live page context adds no value, WebMCP may not earn its integration cost.
-
-Authoritative references to verify before implementation: [WebMCP proposal](https://github.com/webmachinelearning/webmcp), [Chrome comparison](https://developer.chrome.com/docs/ai/webmcp/compare-mcp), [MCP architecture](https://modelcontextprotocol.io/docs/learn/architecture).
-
-## 8. Verification and demonstration contract
-
-Keep labeled expected outcomes separate from editable implementation. Do not alter expected answers merely to make tests pass. Use roughly 10–20 cases when practical: normal, missing information, contradictions, invalid actions, tool/API failure and out-of-scope input.
-
-| Claim | Required evidence |
+| Information | Authoritative location |
 | --- | --- |
-| Works | Unseen input completes the actual task; inspect resulting state/artifact. |
-| Better | Baseline and final system evaluated on the same cases and metric. |
-| Saves effort | Measured manual steps/time against the assisted workflow. |
-| Efficient | Recorded latency, calls and approximate cost. |
-| Handles uncertainty | Missing/contradictory input and failures produce controlled behavior. |
-| Technical contribution | Trace input → model/tool decisions → validation → persisted result. |
+| Objective, scope, required outcomes | `docs/spec.md` |
+| Agent working rules | `AGENTS.md` |
+| Setup and system boundaries | `README.md` |
+| Current status, decisions and next action | `docs/state.md` |
+| Exact API fields and validation | Schema and implementation |
+| Exact dependency versions | Lockfile |
+| Test inputs, expected results and checks | Evaluation fixtures and tests |
+| Current pass/fail evidence | Execution results linked from state/spec |
 
-For consequential claims, run a check designed to disprove them and report what was checked. Compilation, HTTP 200 and a fluent answer alone do not prove task completion. Authored demos and small test sets do not establish deployment-scale accuracy.
+Link to authoritative content. Do not maintain duplicate descriptions of schemas, dependency versions, acceptance cases or decisions.
 
-Rehearse: problem/baseline → live task → measured result → mechanism → limitation. Prepare a three-minute version, then follow the actual announced limit. Label recorded fallback demonstrations clearly. Preserve setup instructions, dependency pins, attribution, sample inputs and submitted artifacts.
+### Architecture section in README
 
-## 9. Repository context layout
+Describe only:
 
-| File | Purpose |
+- Components and their responsibilities.
+- Input-to-output data flow.
+- State ownership and persistence.
+- Model/tool boundaries and deterministic validation.
+- External dependencies and relevant failure behavior.
+
+Add a diagram only when it clarifies these relationships.
+
+### Decision section in state
+
+Record decisions that materially affect correctness, dependencies, interfaces, delivery time or evaluation.
+
+Format:
+
+`Decision | Reason | Consequence | Reconsider when`
+
+Example:
+
+`Use SQLite locally | Durable transactions without another service | One local database file | Deployment requires concurrent writers across instances`
+
+Do not log routine edits, naming choices or the full conversation.
+
+### Judge-evidence mapping in spec
+
+Use official criteria and weights. Mark absent criteria/weights as unknown; label proposed criteria provisional.
+
+| Criterion / official weight | Evidence required | Current proof | Gap / next action |
+| --- | --- | --- | --- |
+| Technical implementation / unknown | Core mechanism executes correctly | Test result and execution trace | Verify API-failure handling |
+| Impact / unknown | Improvement over simplest baseline | Same-task comparison | Measure manual baseline |
+| Usability / unknown | User completes primary task | Browser walkthrough | Verify invalid-input recovery |
+
+- Acceptance cases define required behavior.
+- Tests check that behavior.
+- The judge mapping links criteria to proof.
+- Do not invent numerical self-scores.
+- Update proof/gaps when checks pass or fail, requirements change, or scope changes.
+- Review the mapping before choosing additional features and before the final rehearsal.
+
+### Additional-file rules
+
+Create a separate file only when a specific reader or update cycle needs it and the combined file causes retrieval, ownership or editing failures.
+
+| Additional file | Creation trigger |
 | --- | --- |
-| `AGENTS.md` | Short objective, commands, constraints, verification rules and links. |
-| `CLAUDE.md` | Import shared instructions using `@AGENTS.md` where supported; verify client loading. |
-| `docs/brief.md` | Exact official brief/rubric/deadline/reuse rules; explicit assumptions. |
-| `docs/acceptance.md` | Observable success/failure cases and demo sequence. |
-| `docs/resources.md` | Chosen base + pinned commit/license; specific reference files and why. |
-| `docs/state.md` | Working features, evidence, failed attempts, blockers and next action. |
+| `docs/architecture.md` | Component contracts are repeatedly misunderstood or independently maintained |
+| `docs/acceptance.md` | Acceptance cases require independent maintenance/review |
+| `docs/decisions.md` | Consequential decisions are buried or repeatedly reopened |
+| `docs/resources.md` | Multiple actively used references need version/commit/file navigation |
+| `docs/JUDGE_SCORECARD.md` | Judge mapping needs independent use during prioritization or presentation preparation |
 
-Suggested shared instruction body:
+When splitting, move the authoritative section and replace it with a link. Do not retain two editable copies. Do not create empty placeholder files.
+
+### Documentation stop rule
+
+Before adding content, identify the specific error it prevents or information the next agent cannot recover cheaply.
+
+Stop documenting when a fresh agent can:
+
+1. Identify the objective and constraints.
+2. Run the project.
+3. Verify required outcomes.
+4. Identify the current failure/blocker.
+5. Execute the next action without reconstructing the conversation.
+
+Use a fresh session or agent to check this when available. If the handoff fails, add the missing information only. Do not claim this check passed unless it was executed.
+
+Do not update prose after every code edit. Stop documentation work that displaces implementation or verification without resolving a demonstrated coordination failure.
+
+## 4. Resource adoption rules
+
+The resources below are research leads. Runtime compatibility on the user's laptop is unverified. Verify current contents before using a path or command.
+
+Before incorporating code:
+
+1. Check competition rules permit reuse.
+2. Inspect the repository license and attribution requirements.
+3. Pin the selected commit or package version.
+4. Check installed API signatures and matching documentation.
+5. Execute the base validation gate.
+6. Record adopted components and local changes in README.
+
+Competition placement, repository popularity and README claims do not establish task accuracy. Verify organizer sources before citing awards. Do not describe announced 2027 competitions as completed results.
+
+## 5. Priority contemporary project references
+
+| Resource | Mechanism to inspect | Files to locate | Adoption rule |
+| --- | --- | --- | --- |
+| [Blackbox](https://github.com/alejandro-publius/blackbox-datahub) | Evidence-gated data incident investigation/repair; evaluation and judge proof | `docs/ARCHITECTURE.md`, `docs/ACCEPTANCE.md`, `docs/JUDGE_SCORECARD.md`, `docs/DEMO_SCRIPT.md`, `examples/sample-incident/`, `evals/`, `tests/` | Primary engineering/submission reference. Fork only for a matching operations/data problem. Verify credential-free checks separately from the full DataHub/model workflow. |
+| [Aisle](https://github.com/ergjus/aisle) | Shared human/agent actions; constraints; pinned choices; undo; minimal-change repair | `src/actions.ts`, `src/store.ts`, `src/constraints.ts`, `src/solver.ts`, `src/webmcp/tools.ts`, `src/webmcp/adapter.ts` | Application reference for allocation/scheduling. Validate browser/client compatibility before adopting WebMCP. |
+| [Sach Batao](https://github.com/codewithfourtix/sachbatao) | Urdu scam-verification workflow; knowledge/prompt separation; classifier evaluation | `scam_patterns.json`, `system_prompt.txt`, `src/`, `tests/`, Docker configuration | Pakistan/language-accessibility reference. Test core classification separately from WhatsApp/media integration. |
+| [Interpretable AutoResearch](https://github.com/BarishNamazov/interpretable-autoresearch) | Baseline → predicted improvement → change → measurement → keep/discard | `performance-engineering/`, `program.md`, `bench_e2e.py`, experiment records | Coding-agent experimentation reference. Reuse license is unresolved; establish permission before copying code. |
+| [Mulder](https://github.com/calebevans/mulder) | Evidence identifiers; typed tool boundaries; phase completion; alternative-explanation checks | `docs/`, `src/mulder/`, `tests/`, example reports | Verification reference. Do not import forensic infrastructure into an unrelated application. |
+| [Alza](https://github.com/Elioz404/Alza) | Agent-editable geometry and spatial constraints | Application actions, geometry validation, WebMCP tools | Conditional base for spatial/layout briefs. |
+
+Competition sources for verification:
+
+- Blackbox: [DataHub 2026 results](https://datahub.com/blog/meet-the-winners-of-build-with-datahub-the-agent-hackathon/).
+- Aisle/Alza: [WebMCP Challenge 2026 results](https://webmcp.devpost.com/updates/46049-meet-the-winners).
+- Sach Batao: [competition submission](https://devpost.com/software/sach-batao).
+- Mulder: [SANS Find Evil! 2026 results](https://www.sans.org/press/announcements/sans-names-the-five-winners-of-find-evil-2026).
+- Interpretable AutoResearch: [Claude Builders at MIT](https://www.claudeatmit.com/).
+
+## 6. Bases selected by task
+
+| Task | Resource | Inspect / verify |
+| --- | --- | --- |
+| Full-stack Gemini research with search/citations | [Gemini Fullstack LangGraph Quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart) | React/Vite frontend, Python backend, `backend/src/agent/graph.py`. Verify model IDs, credentials and live search. |
+| Routing, business tools and human review | [Agents From Scratch](https://github.com/langchain-ai/agents-from-scratch) | `src/email_assistant/`, `notebooks/evaluation.ipynb`, `tests/`. Mock email/calendar success does not prove Gmail integration. |
+| Minimal Python/LangGraph application | [New LangGraph Project](https://github.com/langchain-ai/new-langgraph-project) + [Agent Chat UI](https://github.com/langchain-ai/agent-chat-ui) | Verify the LangGraph server and `messages` state contract. An arbitrary FastAPI endpoint is insufficient. |
+| Dataset exploration and visualization | [Data Formulator](https://github.com/microsoft/data-formulator) | Match source/docs/package version. Prefer running for exploration or borrowing one mechanism over an unnecessary whole-app fork. |
+| Typed document extraction and processing | [ExtractThinker](https://github.com/enoch3712/ExtractThinker) | Contracts, loaders, examples, tests; compare checkout with published release. Validate extracted values against source documents. |
+| TypeScript model calls, streaming and tools | [Vercel AI SDK](https://ai-sdk.dev/docs/introduction) | [Agent setup](https://ai-sdk.dev/docs/getting-started/coding-agents); installed package docs/signatures. Select instead of LangGraph unless integration has a concrete benefit. |
+| Closely matched text-to-SQL task | [Mastra Text-to-SQL](https://github.com/mastra-ai/template-text-to-sql) | Schema access, query execution, permissions, seeded data and license. Budget custom UI work separately from Studio. |
+| Closely matched PDF Q&A task | [Mastra Chat with PDF](https://github.com/mastra-ai/template-chat-with-pdf) | Indexing, retrieval, page citations, storage, license and custom UI integration. |
+
+Conditional components:
+
+- [Docling](https://github.com/docling-project/docling): document layout/OCR; pretest model downloads and extraction.
+- [scikit-learn pitfalls](https://scikit-learn.org/stable/common_pitfalls.html): valid splits, pipelines and leakage prevention.
+- [Pydantic AI](https://ai.pydantic.dev/): Python structured extraction/tool application when it reduces implementation work.
+
+Avoid overlapping agent frameworks, broad skill bundles, enterprise generators and long-term-memory infrastructure without a required capability that the current implementation lacks.
+
+## 7. Coding-agent support
+
+| Resource | Use | Boundary |
+| --- | --- | --- |
+| [LangChain Skills](https://github.com/langchain-ai/langchain-skills) | Framework selection, dependencies and graph fundamentals | Select relevant skills only. Add persistence/human review when required. Verify current skill names and installation. |
+| [Context7](https://github.com/upstash/context7) | Retrieve documentation for the active API question | Inspect lockfile and installed signatures first. Do not upgrade to match a newer example. |
+| [Playwright CLI](https://github.com/microsoft/playwright-cli) | Exercise UI behavior and inspect visible results | Prove browser setup before relying on it. |
+| [frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Build the primary workflow interface | Prioritize readable evidence and clear loading/error states. |
+| [web-design-guidelines](https://github.com/vercel-labs/agent-skills) | Review interactions, accessibility and forms | Review actual implementation and visible behavior. |
+| [Promptfoo](https://www.promptfoo.dev/docs/getting-started/) | Evaluate central LLM behavior | Use ordinary tests/task metrics when sufficient. |
+
+Retrieve specific files for the current question. Keep the full resource catalog out of startup instructions.
+
+## 8. Architecture and interface selection
+
+- Use models for ambiguous input interpretation and action proposals.
+- Enforce permissions, calculations, quantities, constraints and state transitions in deterministic code.
+- Set explicit limits for model/tool loops, retries, timeouts and spend.
+- Distinguish proposed actions, tool observations and committed state.
+- Add approval where the workflow requires it; expose inspectable results.
+
+| Interface | Connection | Select when |
+| --- | --- | --- |
+| Ordinary tool/function calling | Model requests an operation implemented by the application | Internal integration requires no separate protocol |
+| MCP | Client connects to a local/remote server exposing tools/resources | Agents need service/API/data integrations independent of a live webpage |
+| WebMCP | Live webpage advertises structured operations through browser-mediated APIs | Human and agent must manipulate the same active page/draft |
+
+WebMCP is MCP-inspired, not an automatically compatible MCP transport. A compatible browser/client or bridge is required.
+
+For a shared workspace, route human controls and agent tools through the same validated application actions. Implement authorization, approval, undo and validation explicitly. Backend MCP can access draft state if the application exposes it; draft access is an architectural choice.
+
+References: [WebMCP proposal](https://github.com/webmachinelearning/webmcp), [Chrome comparison](https://developer.chrome.com/docs/ai/webmcp/compare-mcp), [MCP architecture](https://modelcontextprotocol.io/docs/learn/architecture).
+
+## 9. Evaluation and judge evidence
+
+Keep labeled expectations separate from implementation. Do not change expected outcomes to conceal a failure. Correct invalid tests with an explicit reason.
+
+Cover normal input, missing information, contradictions, invalid actions, tool/API failure and out-of-scope requests. For an LLM-centered task, start with 10–20 labeled cases when the sprint allows; coverage of required behavior takes priority over the count.
+
+| Claim | Evidence |
+| --- | --- |
+| Works | Unseen input completes the task; resulting state/artifact inspected |
+| Improves performance | Baseline/final system evaluated on the same cases and metric |
+| Saves effort | Measured manual/assisted steps or time on the same task |
+| Efficient | Recorded latency, call count and approximate cost |
+| Handles uncertainty | Missing/contradictory input and failures produce expected behavior |
+| Technical contribution | Trace from input through model/tools and validation to final state |
+
+For consequential claims, execute a check designed to disprove them and record the check/result. Compilation, HTTP status and fluent text alone are insufficient.
+
+Verify the browser flow for successful input, invalid input, dependency failure, loading/empty/error states and restart. Inspect visible output and persisted state where applicable.
+
+Present: problem/baseline → live task → measured result → mechanism → limitation. Follow the organizer's time limit. Label recorded fallbacks. Preserve setup, pins, attribution, sample inputs and submitted artifacts.
+
+## 10. Short shared instruction body
+
+Place the following rules in AGENTS.md, adapting commands to the actual project:
 
 ```text
-Read docs/brief.md, docs/acceptance.md and docs/state.md first.
-Build the smallest complete solution satisfying the official brief.
-Use the existing stack and lockfile. Justify new dependencies.
-Retrieve documentation for the active question and installed version.
-Implement one vertical slice at a time.
-Keep constraints, calculations and state transitions deterministic.
+Read docs/spec.md and docs/state.md. Use README.md for commands and architecture.
+Build the smallest complete workflow satisfying the official brief.
+Use the existing stack and lockfile. Identify the required capability before adding a dependency.
+Retrieve documentation for the active implementation question and installed version.
+Complete one input-to-output slice before expanding scope.
+Keep constraints, calculations, permissions and state transitions deterministic.
 Bound loops, retries, timeouts and external calls.
-Distinguish model proposals, tool evidence and persisted outcomes.
-Verify observable task completion, including an expected failure.
-For UI work, exercise the real browser flow and inspect visible output.
-Report commands, results and remaining failures without overstating them.
-Update docs/state.md after meaningful changes; preserve attribution.
+Distinguish model proposals, tool evidence and committed outcomes.
+Verify actual task completion and required failure behavior.
+For UI changes, exercise the real browser flow and inspect visible output.
+Report executed commands, results and unresolved failures.
+Update only the authoritative document affected by a changed contract, decision or verified status.
+Use the judge-evidence mapping to identify unproven criteria.
+Preserve attribution and submitted artifacts.
 ```
 
-## 10. Short study map
+## 11. Study references
 
-- [Thinking in LangGraph](https://docs.langchain.com/oss/python/langgraph/thinking-in-langgraph): divide the task into model reasoning, data access, deterministic actions and human review.
-- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents): justify workflow versus autonomy and every additional agent.
-- [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents): decide what loads at startup and what gets retrieved.
-- [Demystifying Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents): evaluate actual outcomes independently of agent narratives.
-- [Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps): reference for generation/evaluation coordination; verify current page availability.
-- [HETIC 2026–2027 competition](https://ai-agents-founders-hetic-26.devpost.com/): previously cited as an announced benchmark for demos, checkpoints, disclosures and limitations, not as completed winning work or NaSCon requirements.
-
-Next executing agent: obtain the official brief, select one matching base, pin it and prove the complete readiness gate before expanding scope.
+| Reading | Decision it supports |
+| --- | --- |
+| [Thinking in LangGraph](https://docs.langchain.com/oss/python/langgraph/thinking-in-langgraph) | Separate model reasoning, data access, deterministic actions and review |
+| [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) | Choose workflow/autonomy; justify additional agents |
+| [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | Select startup context versus retrieved context |
+| [Demystifying Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) | Measure task outcomes independently of agent narratives |
+| [Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps) | Coordinate implementation and evaluation |
+| [HETIC 2026–2027 specification](https://ai-agents-founders-hetic-26.devpost.com/) | Compare demonstration/checkpoint/disclosure requirements; do not apply them as NaSCon rules |
