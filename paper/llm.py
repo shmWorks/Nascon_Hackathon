@@ -31,11 +31,15 @@ def client():
 
 
 def classify(err: Exception) -> str:
-    code = getattr(err, "code", None) or getattr(err, "status_code", None)
-    msg = str(err).lower()
-    name = type(err).__name__.lower()
-    if any(k in name for k in ("timeout", "connecterror", "readerror", "remoteprotocol", "networkerror")):
+    """Type first: only API and network errors are retryable; anything else is a programming error ("bug")."""
+    import httpx
+
+    if isinstance(err, httpx.TransportError):  # timeouts, connection resets, protocol errors
         return "transient"
+    code = getattr(err, "code", None) or getattr(err, "status_code", None)
+    if not isinstance(code, int):
+        return "bug"
+    msg = str(err).lower()
     if code in (429, 500, 502, 503, 504) or "timeout" in msg or "temporarily" in msg or "connection" in msg:
         return "transient"
     if code in (401, 403) or "api key" in msg or ("model" in msg and "not found" in msg) or code == 404:
@@ -87,6 +91,8 @@ def generate_json(role: str, prompt: str, schema, images=()):
             except LLMUnavailable:
                 raise
             except Exception as e:
+                if classify(e) == "bug":
+                    raise  # never retry or mask a programming error
                 last = e
                 kind = classify(e)
                 log.warning("llm %s %s attempt %d: %s", model, kind, attempt + 1, str(e)[:300])

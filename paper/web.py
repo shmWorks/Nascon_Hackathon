@@ -96,6 +96,8 @@ def home(request: Request):
     if not has_topics:
         return RedirectResponse("/onboarding", status_code=303)
     if not e:
+        # Self-healing: a build lost to a restart or failure is restarted, so "preparing" never spins forever.
+        threading.Thread(target=_build_async, args=(r["id"],), daemon=True).start()
         return page("preparing.html", request, reader=r)
     return HTMLResponse(render.edition_html(e["id"], print_mode=False))
 

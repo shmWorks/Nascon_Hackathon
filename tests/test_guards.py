@@ -25,7 +25,11 @@ def test_error_classes():
     assert llm.classify(_E(503)) == "transient"
     assert llm.classify(_E(400)) == "permanent"
     assert llm.classify(_E(401)) == "config"
-    assert llm.classify(_E(None, "weird")) == "unknown"
+    assert llm.classify(_E(418, "weird")) == "unknown"
+
+
+def test_programming_errors_are_not_retryable():
+    assert llm.classify(AttributeError("no attribute LLM_REQUEST_TIMEOUT_MS")) == "bug"
 
 
 def test_network_timeouts_are_transient():
