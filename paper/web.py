@@ -84,6 +84,27 @@ def latest_day():
     return date.fromisoformat(r["d"]) if r and r["d"] else datetime.now(config.PKT).date()
 
 
+_ingesting: set[date] = set()
+
+
+def _ensure_today():
+    """Fresh every day (R2) on any host: the first visit after the 06:00 PKT cutoff ingests that edition day once."""
+    from . import ingest
+
+    now = datetime.now(config.PKT)
+    today = now.date() if now.hour >= config.EDITION_CUTOFF_HOUR else now.date() - timedelta(days=1)
+    with db.tx() as con:
+        have = con.execute("SELECT 1 FROM items WHERE day=? AND vec IS NOT NULL LIMIT 1", (today.isoformat(),)).fetchone()
+    with _build_lock:
+        if have or today in _ingesting:
+            return
+        _ingesting.add(today)
+    try:
+        ingest.run_day(today)
+    finally:
+        _ingesting.discard(today)
+
+
 def _build_async(reader_id):
     from . import edition
 
@@ -92,6 +113,7 @@ def _build_async(reader_id):
             return
         _building.add(reader_id)
     try:
+        _ensure_today()
         edition.build_edition(reader_id, latest_day(), "live")
     finally:
         _building.discard(reader_id)
@@ -116,7 +138,14 @@ def home(request: Request):
         # Self-healing: a build lost to a restart or failure is restarted, so "preparing" never spins forever.
         threading.Thread(target=_build_async, args=(r["id"],), daemon=True).start()
         return page("preparing.html", request, reader=r)
-    return HTMLResponse(render.edition_html(e["id"], print_mode=False))
+    with db.tx() as con:
+        last_day = con.execute("SELECT day FROM editions WHERE id=?", (e["id"],)).fetchone()["day"]
+    now = datetime.now(config.PKT)
+    due = (now.date() if now.hour >= config.EDITION_CUTOFF_HOUR else now.date() - timedelta(days=1)).isoformat()
+    printing = last_day < due
+    if printing:  # today's edition not printed yet: build it in the background, show the latest one meanwhile
+        threading.Thread(target=_build_async, args=(r["id"],), daemon=True).start()
+    return HTMLResponse(render.edition_html(e["id"], print_mode=False, printing=printing))
 
 
 @app.get("/login", response_class=HTMLResponse)

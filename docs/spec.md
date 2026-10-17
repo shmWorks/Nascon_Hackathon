@@ -126,7 +126,7 @@ Ratified 2026-10-17. No case may produce fabricated text, a mislabeled stale edi
 | F1 | One source fails or exceeds its fetch timeout | Source is skipped; edition builds from the rest; reader sees "N sources unavailable" |
 | F2 | All sources fail | No new edition is committed; last successful edition is shown with its own date and a banner |
 | F3 | Model call fails or returns invalid output | Handled per the retry policy below; on exhaustion, story falls back to keyword topics + feed snippet labeled "summary unavailable" |
-| F4 | PDF render fails | Web edition stays available; reader sees an error and a retry control |
+| F4 | PDF render fails or no renderer on the host | Web edition stays available; "Save as PDF" prints the same edition through the browser with the newspaper print stylesheet |
 | F5 | Onboarding submitted with no interests | Submission is blocked with a stated reason |
 | F6 | An interest has no matching items | Section shows "No stories today for X"; no filler |
 
