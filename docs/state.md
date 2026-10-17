@@ -19,7 +19,7 @@ Last updated: 2026-10-17 11:05 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 Handoff §2, steps 2–4:
 
-1. Define the primary task, simplest baseline, and observable success/failure cases; add failure-behavior acceptance cases to `spec.md`.
+1. Define the primary task, simplest baseline, and observable success/failure cases; add failure-behavior acceptance cases to `spec.md`. In the same pass, ratify or reject the acceptance proposals in [`eynvision.md` § Execution priorities](eynvision.md#execution-priorities): skip as reading overlay (A5/A7), explicit topic feedback for A10, simulated date rollover for A4 (real next-day run is unverifiable before the deadline), failure cases.
 2. Test the dependencies most likely to block delivery: article source access across the web, model access, PDF rendering.
 3. Select a base (or none), record commit and license, pass the base validation gate (handoff §2) within 45 minutes.
 4. Propose a time-boxed schedule to 20:00 freeze for user approval.
