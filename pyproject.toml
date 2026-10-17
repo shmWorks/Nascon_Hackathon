@@ -1,0 +1,15 @@
+[project]
+name = "morning-paper"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "fastapi>=0.143.3",
+    "feedparser>=6.0.14",
+    "google-genai>=2.31.0",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "playwright>=1.64.0",
+    "python-dotenv>=1.2.4",
+    "uvicorn[standard]>=0.54.0",
+]
