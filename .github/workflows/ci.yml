@@ -13,14 +13,3 @@ jobs:
       - run: uv run pytest -q
         env:
           PAPER_DATA: ${{ runner.temp }}/data
-  deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Render deploy (CD gated on green tests)
-        env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          if [ -z "$HOOK" ]; then echo "RENDER_DEPLOY_HOOK secret not set; skipping deploy"; exit 0; fi
-          curl -fsS -X POST "$HOOK"

@@ -7,7 +7,7 @@ A personal daily newspaper: it learns what each reader cares about, gathers the 
 ```bash
 uv sync
 uv run playwright install chromium
-cp .env.example .env   # then set GEMINI_API_KEY
+cp .env.example .env   # then set GEMINI_API_KEY1 (optionally 2, 3: separate quota lanes)
 ```
 
 ## Commands
@@ -28,7 +28,7 @@ Demo readers: `ayesha@demo.paper`, `bilal@demo.paper`, `sara@demo.paper`, passwo
 
 ## Deployment and CI/CD
 
-- **CI** (`.github/workflows/ci.yml`): every push runs `ruff` and `pytest`; on `main`, a green run triggers the Render deploy hook (`RENDER_DEPLOY_HOOK` secret). Deploys never bypass tests.
+- **CI/CD** (`.github/workflows/ci.yml`): every push and PR runs `ruff` and `pytest`. Render deploys `main` with Auto-Deploy = "After CI Checks Pass", so a deploy never bypasses green tests.
 - **Host:** Render free web service from the `Dockerfile`. The embedding model is baked into the image. The free disk is ephemeral, so `demo_data/` (personas, editions, PDFs, latest day's items) ships in the image; sign-ups made on the live site reset on restart.
 - **Server PDFs:** the image has no Chromium (free tier has 512 MB RAM); demo PDFs are pre-rendered. A new reader's live edition shows the honest "PDF not available" notice with a retry (F4).
 

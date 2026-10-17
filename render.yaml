@@ -5,8 +5,12 @@ services:
     plan: free
     region: singapore
     branch: main
-    autoDeploy: false        # CI triggers deploys via the deploy hook, only after tests pass
+    autoDeployTrigger: checksPass  # deploy main only after GitHub CI checks pass
     healthCheckPath: /healthz
     envVars:
-      - key: GEMINI_API_KEY
+      - key: GEMINI_API_KEY1
         sync: false          # set in the Render dashboard; never committed
+      - key: GEMINI_API_KEY2
+        sync: false
+      - key: GEMINI_API_KEY3
+        sync: false
