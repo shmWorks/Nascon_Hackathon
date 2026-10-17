@@ -2,7 +2,7 @@
 
 Authoritative for verified status, blockers, next action and consequential decisions. Update when a milestone passes or fails, a blocker changes, a decision changes, or work is handed off. Requirement IDs (R*, A*) refer to [`spec.md`](spec.md).
 
-Last updated: 2026-10-17 16:45 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
+Last updated: 2026-10-17 17:05 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Verified status
 
@@ -26,7 +26,7 @@ Last updated: 2026-10-17 16:45 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Blockers and open questions
 
-- E1–E3 (spec.md) are new: deployment target, CI/CD shape and the paid-value proposition are undecided; the plan to freeze must absorb them.
+- D7 (open): deployment host. Constraints: Docker image with Chromium (~1 GB RAM headroom for PDF render), free, public URL, deploy from GitHub Actions. Candidates [UNVERIFIED free-tier details]: Hugging Face Spaces (Docker), Render (Docker web service), Railway, Fly.io. Data on free hosts is likely ephemeral: ship the prebuilt demo database and PDFs in the image; live sign-ups may reset on restart (stated limitation).
 
 - Official rubric/weights and named NaSCon'26 judges remain unverified. Sponsor-fit evidence is proposed in `spec.md`; research recommendations are not added acceptance gates.
 
@@ -36,12 +36,12 @@ Each milestone ends on its done-check; do not start the next until it passes. If
 
 | # | Window | Build | Done when |
 | --- | --- | --- | --- |
-| M0 | 16:50–17:05 | Package `paper/`, config, SQLite schema, content-addressed cache, deps (`trafilatura`, `numpy`) | `uv run python -m paper --help` runs; schema creates `data/paper.db` |
-| M1 | 17:05–17:45 | Shared stages for one day: ingest (GKG + RSS) → allowlist → embed → topics (IPTC + custom) | Items for today stored with topics; rerun makes zero new external calls |
-| M2 | 17:45–18:25 | Per-reader: rank → cluster → select → retrieve → synthesize (quote-verified) → commit → HTML + PDF | One seeded reader's edition opens in the browser and as a PDF (A2, A5) — **walking skeleton** |
-| M3 | 18:25–19:05 | Web: auth, onboarding (chips + free text), edition view with click/skip/feedback/impression events, archive, download | Browser: sign up → onboard → read → skip → download PDF (A1, A6–A9, F5) |
-| M4 | 19:05–19:35 | Learn (posterior fold), simulator, backfill D−6…D−1 newest-first for 3 personas, "Three things to know" | Same persona's edition changes in line with its simulated signals (A3, A4, A10, R5) |
-| M5 | 19:35–20:00 | Failure checks F1–F6, README commands, browser test of A8, freeze commit | Fresh-terminal run passes; working tree clean |
+| M0 | 17:10–17:35 | Package `paper/`, config, SQLite schema, content-addressed cache, LLM and fetch gateways, deps (`trafilatura`, `numpy`, `pytest`, `ruff`); Dockerfile; GitHub Actions CI (ruff + pytest on push); push to `origin` | CI green on GitHub; `uv run python -m paper --help` runs |
+| M1 | 17:35–18:10 | Shared stages for one day: ingest (GKG + RSS) → allowlist → embed → topics (IPTC + custom) | Items for today stored with topics; rerun makes zero new external calls |
+| M2 | 18:10–18:45 | Per-reader: rank → cluster → select → retrieve → synthesize (quote-verified) → commit → HTML + PDF | One seeded reader's edition opens in the browser and as a PDF (A2, A5), **deployed** via CD on push to `main` (E1, E2) — **walking skeleton** |
+| M3 | 18:45–19:15 | Web: auth, onboarding (chips + free text), edition view with click/skip/feedback/impression events, archive, download | Browser: sign up → onboard → read → skip → download PDF (A1, A6–A9, F5) |
+| M4 | 19:15–19:40 | Learn (posterior fold), simulator, backfill D−6…D−1 newest-first for 3 personas, "Three things to know" | Same persona's edition changes in line with its simulated signals (A3, A4, A10, R5) |
+| M5 | 19:40–20:00 | Failure checks F1–F6, README commands, browser test of A8, final deploy, freeze commit | Fresh-terminal run passes; live URL serves 3 personas x 7 days; CI green; tree clean |
 
 **Cut order** (first cut first): onboarding calibration step → nDCG baselines (keep before/after) → exploring slots → free-text custom topics (keep IPTC chips) → backfill days beyond D−3 → image evidence in synthesis (keep images in UI). Never cut M2.
 

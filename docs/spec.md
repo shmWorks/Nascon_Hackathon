@@ -2,9 +2,20 @@
 
 Authoritative for objective, constraints, scope, acceptance cases and judge-evidence mapping. Exact organizer wording: [`brief.md`](brief.md) (PDF: [`brief.pdf`](brief.pdf)). On conflict, the brief wins; fix this file.
 
-## Objective
+## Problem
 
-A product that learns what each reader cares about, gathers matching articles from across the web every day, and delivers one personal morning paper: read on the web, click through to originals, skip items, download as a newspaper-style PDF.
+News that matters to a reader is scattered across dozens of sites, apps and newsletters. They hop between them, click link after link, and still cannot name three things they learned. Aggregators and feeds (Google News, Feedly) collect links but leave selection, verification and synthesis to the reader, and infinite feeds never let them finish.
+
+## Solution and value (E3)
+
+One finite morning edition per reader, ready to read in about 10 minutes, on the web or as a newspaper-style PDF. A reader pays for four felt outcomes, each visible in the product:
+
+| Felt outcome | Product evidence on screen |
+| --- | --- |
+| Time back: one place, then done | Finite edition with a "You're caught up" end state and "Three things to know" |
+| Trust: no need to check the sources | Each story merges several sources; each claim shows its source and a verified quote; "N claims verified, M sources" |
+| Relevance that visibly improves | "Why this story" per story; a profile page showing what the paper learned and from which actions |
+| Calm control | One-tap skip, more/less like this, follow/mute; nothing changes after the edition is committed |
 
 ## Constraints
 
@@ -42,6 +53,33 @@ IDs are stable; reference them in commits, tests and `state.md`.
 | E3 | Value a reader would pay for: tangible, felt value, not a feature demo (user). |
 
 Reader actions named in the brief ("The idea"): read on web page, click through to original article, skip unwanted items, download whole paper as PDF.
+
+## User stories
+
+Priority maps to the plan in `state.md`: **M** must (M0-M3), **S** should (M4), **C** could (only after all M and S pass). Each story names the case that proves it.
+
+| # | As a | I want | So that | P | Proof |
+| --- | --- | --- | --- | --- | --- |
+| U1 | new reader | to sign up with email and password | my paper and history are mine | M | A1 |
+| U2 | new reader | to pick topics from chips and type interests in my own words in under 60 s | my first edition already fits me | M | A1, F5 |
+| U3 | new reader | to rate a few real headlines during onboarding | the paper learns my taste before day one | C | A1 |
+| U4 | reader | one edition each morning covering the previous 24 h | I read once and I am done | M | A2, A4 |
+| U5 | reader | my most important story as the lead, then sections ordered by my interests | the layout itself reflects what I care about | M | A3 |
+| U6 | reader | each story synthesized from all its sources, every claim quoted and cited | I can trust it without opening five tabs | M | Synthesis verification test |
+| U7 | reader | to open the original article from any story | I can go deeper | M | A6 |
+| U8 | reader | to skip a story with one tap | I see less of what I do not want | M | A7 |
+| U9 | reader | more/less like this, and follow/mute on topics and sources | I steer the paper directly | M | A10 |
+| U10 | reader | to download today's edition as a newspaper-style PDF | I can read it offline or print it | M | A2, A8 |
+| U11 | reader | to open any previous edition | I can find what I read before | M | A9 |
+| U12 | reader | to see why each story was chosen | I understand and trust the selection | S | UI walkthrough |
+| U13 | reader | a profile page showing what the paper learned | I see it getting better | S | A10 |
+| U14 | reader | "Three things to know" at the top | I leave with concrete takeaways | S | R5 |
+| U15 | reader | a clear end state when I finish | I feel done, not pulled to scroll | S | UI walkthrough |
+| U16 | reader | honest notices when sources or summaries are unavailable | I am never shown invented content | M | F1-F4, F6 |
+| U17 | reader | labeled "Exploring" stories outside my usual topics | my paper does not become a bubble | C | UI walkthrough |
+| U18 | evaluator | a deployed URL with three ready personas and 7 days of editions | I can judge the product without setup | M | E1, A3, A4 |
+| U19 | evaluator | CI running tests on every push and deploying main | I can see engineering discipline | M | E2 |
+| U20 | evaluator | evidence that learning works, against baselines | the learning claim is not hand-waving | S | A10 simulation report |
 
 ## Acceptance cases
 
@@ -104,6 +142,35 @@ Ratified 2026-10-17. No case may produce fabricated text, a mislabeled stale edi
 
 Exact budgets (attempts, seconds, tokens) live in code configuration and are recorded in `README.md` once set.
 
+## Implementation decisions
+
+Components and data flow: [`README.md` Architecture](../README.md#architecture). Decision rationale: [`state.md` Decisions](state.md#decisions). Modules are built against these contracts.
+
+- **Two choke points own all external effects.** Every model call goes through one LLM gateway: cache by input hash, per-model budgets, error-classified retry, model fallback, media validation. Every outbound HTTP request goes through one fetch gateway: cache, timeout, honest User-Agent, robots.txt, per-host pacing. No other module imports an HTTP or model client.
+- **Pipeline entry points** (CLI and web call the same functions; all idempotent):
+  - `run_day(day)`: shared stages for edition day `day` (ingest, allowlist, embed).
+  - `build_edition(reader, day, kind)`: rank, cluster, select, retrieve, synthesize, commit, render; `kind` is live or backfilled.
+  - `profile(reader, as_of)`: topic and source posteriors folded from events up to `as_of`.
+  - `simulate_day(persona, edition)`: labeled simulated events for a backfilled edition.
+- **Persistence (SQLite):** `readers`, `sessions`, `events` (append-only, `simulated` flag), `items` (url, domain, title, description, source time, image url, feed body, edition day, vector), `topics` (label, kind iptc or custom, owner reader or none, vector), `reader_topics` (prior), `editions` (reader, day, kind, status, stories JSON, PDF path; unique per reader and day).
+- **Synthesis output contract:** `{headline, dek, claims: [{text, item_ids, quote}], image_note?}`. A claim survives only if its quote is found in a cited item's extracted text.
+- **Deployment (E1) and CI/CD (E2):** one Docker image (Python + Playwright Chromium) serving the web app; GitHub Actions runs lint and tests on every push and deploys `main`. Host is an open decision in `state.md`.
+
+## Testing decisions
+
+- **Good test:** asserts observable behavior at a public seam (an edition's contents, an HTTP response, a downloaded file), never internal calls.
+- **Seams (three, highest possible):**
+  1. `build_edition` with fake LLM and fetch gateways replaying recorded responses: A2, A3, A5, F1-F3, F6, synthesis verification. Runs offline in CI with no key.
+  2. Web app through an HTTP test client: A1, A6, A7, A9, F5, auth, Origin check.
+  3. One browser test that clicks Download: A8.
+- **Learning:** posterior-update unit tests plus the persona simulation (A10) against onboarding-only, recency and random baselines.
+- **Falsify first:** each guard (quote verification, retrieval acceptance, media validation) gets a test that fails on the unguarded code.
+- **Prior art:** `spikes/retrieval.py` swap test (negatives generated from real data, no hand labels).
+
+## Out of scope
+
+Payments and pricing, email verification and password reset, mobile apps, push or email delivery, real unattended overnight scheduling (simulated rollover only), Google News source, video and podcast stages, audio briefing, recall quiz, multi-language editions.
+
 ## Judge-evidence mapping
 
 Official criteria and weights are undisclosed. Criteria below are **provisional**, taken from the brief's parts and the user's quality bar. Weights: unknown. Self-scores are not recorded.
@@ -116,4 +183,5 @@ Official criteria and weights are undisclosed. Criteria below are **provisional*
 | R4 Learning / unknown | Same-reader before/after editions (A10) | None | Define signals and update rule |
 | R5 Exploration / unknown | Demoed feature beyond core | None | Only after R1–R4 have proof |
 | End-to-end MVP completeness / unknown | Fresh-terminal run: onboarding → edition → PDF → signal → next edition | None | First vertical slice |
+| Deployed, CI/CD, paid-grade value / required (E1-E3) | Live URL; green CI run on `main`; felt-outcome evidence on screen (Solution table) | None | Host decision; Dockerfile; workflow |
 | Fit for Eynvision / unknown | Proposed evidence: usable workflow, source traceability, matched editions and observable adaptation; rationale: [sponsor research](eynvision.md) | Public-source research complete; no product proof | Validate R1–R4 first; sponsor patterns guide tradeoffs, not official scoring |
