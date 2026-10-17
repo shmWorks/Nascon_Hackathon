@@ -26,6 +26,9 @@ class FakeModels:
             raise Quota("{'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'retryDelay': '39000s'}")
         if outcome == "minute":
             raise Quota("{'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'retryDelay': '20s'}")
+        if outcome == "minute-once":
+            self.behaviour[(model, self.ki)] = "ok"
+            raise Quota("{'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'retryDelay': '0.2s'}")
         if outcome == "badkey":
             raise BadKey()
         return type("R", (), {"text": '{"ok": true}'})()
@@ -76,3 +79,12 @@ def test_all_lanes_exhausted_raises_for_f3_fallback(lanes):
     with pytest.raises(llm.LLMUnavailable):
         llm.generate_json("synth", "p6", dict)
     assert len(calls) == 6
+
+
+def test_all_lanes_minute_limited_waits_for_soonest_instead_of_failing(lanes):
+    calls, behaviour = lanes
+    for m in ("m-a", "m-b"):
+        for ki in range(3):
+            behaviour[(m, ki)] = "minute-once"
+    assert llm.generate_json("synth", "p7", dict) == {"ok": True}  # recovered after the short cool-down, no F3
+    assert len(calls) == 7  # six quota hits, then one success on the soonest lane

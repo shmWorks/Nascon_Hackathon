@@ -88,56 +88,65 @@ def generate_json(role: str, prompt: str, schema, images=()):
     if not config.GEMINI_API_KEYS:
         raise LLMUnavailable("No GEMINI_API_KEY / GEMINI_API_KEY1..9 is set")
     all_lanes = lanes(role)
-    for li, (model, ki) in enumerate(all_lanes):
-        if _cooling.get((model, ki), 0) > time.monotonic():
-            continue  # this lane's quota is cooling down: skip without spending a request
-        more_lanes = li < len(all_lanes) - 1
-        repair = None
-        for attempt in range(config.LLM_MAX_ATTEMPTS):
-            if time.monotonic() > deadline:
-                raise LLMUnavailable(f"time budget exhausted: {last}")
-            try:
-                contents = parts if repair is None else parts + [f"Your previous output was invalid: {repair}. Return valid JSON only."]
-                with _concurrency:
-                    r = client(ki).models.generate_content(
-                        model=model, contents=contents,
-                        config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema, temperature=0.2),
-                    )
+    dead: set = set()  # lanes that failed this call for non-quota reasons (bad request, bad output, server errors)
+    while True:
+        for model, ki in all_lanes:
+            if (model, ki) in dead or _cooling.get((model, ki), 0) > time.monotonic():
+                continue  # dead for this call, or quota cooling: skip without spending a request
+            repair = None
+            for attempt in range(config.LLM_MAX_ATTEMPTS):
+                if time.monotonic() > deadline:
+                    raise LLMUnavailable(f"time budget exhausted: {last}")
                 try:
-                    out = json.loads(r.text)
-                except (json.JSONDecodeError, TypeError) as e:
-                    if repair is not None:
-                        break  # one repair retry only, then next model
-                    repair = str(e)[:200]
-                    continue
-                return cache.put("llm", k, out)
-            except LLMUnavailable:
-                raise
-            except Exception as e:
-                if classify(e) == "bug":
-                    raise  # never retry or mask a programming error
-                last = e
-                kind = classify(e)
-                log.warning("llm %s key#%d %s attempt %d: %s", model, ki + 1, kind, attempt + 1, str(e)[:1500] if "429" in str(e)[:40] else str(e)[:300])
-                if kind == "transient":
-                    delay, per_day = _retry_after(e)
-                    if getattr(e, "code", None) == 429 and (per_day or more_lanes or (delay and delay > config.LLM_CALL_BUDGET_S)):
+                    contents = parts if repair is None else parts + [f"Your previous output was invalid: {repair}. Return valid JSON only."]
+                    with _concurrency:
+                        r = client(ki).models.generate_content(
+                            model=model, contents=contents,
+                            config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema, temperature=0.2),
+                        )
+                    try:
+                        out = json.loads(r.text)
+                    except (json.JSONDecodeError, TypeError) as e:
+                        if repair is not None:
+                            dead.add((model, ki))
+                            break  # one repair retry only, then next lane
+                        repair = str(e)[:200]
+                        continue
+                    return cache.put("llm", k, out)
+                except LLMUnavailable:
+                    raise
+                except Exception as e:
+                    kind = classify(e)
+                    if kind == "bug":
+                        raise  # never retry or mask a programming error
+                    last = e
+                    log.warning("llm %s key#%d %s attempt %d: %s", model, ki + 1, kind, attempt + 1, str(e)[:1500] if "429" in str(e)[:40] else str(e)[:300])
+                    if getattr(e, "code", None) == 429:  # quota: cool this lane for the server's own delay, try the next key/model now
+                        delay, per_day = _retry_after(e)
                         cool = delay or (3600 if per_day else 60)
                         _cooling[(model, ki)] = time.monotonic() + cool
                         log.warning("llm %s key#%d quota hit (%s) — cooling %.0fs, next lane", model, ki + 1, "day" if per_day else "minute", cool)
                         break
-                    remaining = deadline - time.monotonic()
-                    wait = delay + random.uniform(0, 1) if delay else random.uniform(0, 2 ** (attempt + 1))  # server hint, else full jitter
-                    if wait >= remaining:
-                        break
-                    time.sleep(wait)
-                    continue
-                if kind == "unknown" and attempt == 0:
-                    continue
-                if kind == "config" and "api key" in str(e).lower():
-                    for lane_model, lane_key in all_lanes:  # an invalid key disables every lane that uses it, not the whole call
-                        if lane_key == ki:
-                            _cooling[(lane_model, lane_key)] = time.monotonic() + 86400
-                    log.error("llm key#%d rejected (configuration error) — disabled", ki + 1)
-                break  # permanent / config / unknown twice: next lane
-    raise LLMUnavailable(str(last))
+                    if kind == "transient":  # 5xx / timeout: back off and retry the same lane
+                        wait = random.uniform(0, 2 ** (attempt + 1))
+                        if attempt == config.LLM_MAX_ATTEMPTS - 1 or wait >= deadline - time.monotonic():
+                            dead.add((model, ki))
+                            break
+                        time.sleep(wait)
+                        continue
+                    if kind == "unknown" and attempt == 0:
+                        continue
+                    if kind == "config" and "api key" in str(e).lower():
+                        for lane_model, lane_key in all_lanes:  # an invalid key disables every lane that uses it, not the whole call
+                            if lane_key == ki:
+                                _cooling[(lane_model, lane_key)] = time.monotonic() + 86400
+                        log.error("llm key#%d rejected (configuration error) — disabled", ki + 1)
+                    dead.add((model, ki))
+                    break  # permanent / config / unknown twice: next lane
+        # Every lane is dead or cooling. Wait for the soonest quota lane if it frees up within the budget; else F3.
+        now = time.monotonic()
+        waits = [_cooling[ln] - now for ln in all_lanes if ln not in dead and _cooling.get(ln, 0) > now]
+        if not waits or min(waits) >= deadline - now:
+            raise LLMUnavailable(str(last))
+        log.warning("llm all lanes cooling — waiting %.0fs for the soonest", min(waits))
+        time.sleep(min(waits) + random.uniform(0, 0.5))
