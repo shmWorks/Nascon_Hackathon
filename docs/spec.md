@@ -45,18 +45,59 @@ Derived from brief text. Observable form is proposed; the user ratifies changes 
 
 | ID | Req | Case | Pass when |
 | --- | --- | --- | --- |
-| A1 | R1 | New reader completes onboarding | Interests are persisted and the first edition is built from them |
-| A2 | R2 | Edition generated for a reader on a given day | A PDF exists for that reader and date, with newspaper-inspired layout |
-| A3 | R2 | Two readers with different interests | Their editions differ in selected content and/or presentation in line with their interests |
-| A4 | R2, R3 | Daily freshness | Next day's edition is a new edition built from articles gathered that day |
-| A5 | R3 | Web edition vs PDF | Both show the same edition (same articles) |
+| A1 | R1 | New reader completes onboarding | Interests, free-text interests and calibration responses are persisted as events; the first edition's ranking is computed from them |
+| A2 | R2 | Edition generated for a reader on a given day | A PDF is rendered at commit time and stored for that reader and date, with newspaper-inspired layout |
+| A3 | R2 | Three readers with non-overlapping interests (demo personas) | Their editions differ in selected stories and presentation in line with their interests |
+| A4 | R2, R3 | Daily freshness, 7-day window | For each day D−6…D, an edition is built only from items published that day, using the profile as it stood that day, with that day's signals replayed before D+1. Days before today are labeled "backfilled"; today is "live". A real unattended next-day run is recorded as unverified |
+| A5 | R3 | Web edition vs PDF | Both render the same committed edition (same stories); web skips do not alter the PDF or archive |
 | A6 | R3 | Reader clicks an article | Original article URL opens |
-| A7 | R3 | Reader skips an article | Article is removed or hidden from the reading view; skip is recorded |
-| A8 | R3 | Reader downloads PDF from web page | PDF of the current edition downloads |
+| A7 | R3 | Reader skips an article | Story is hidden from the web reading view only (overlay); skip is stored as an event; the committed edition is unchanged |
+| A8 | R3 | Reader downloads PDF from web page | Clicking the web page's Download control yields the PDF of the current edition; verified by a browser test that clicks that control, as a reader would |
 | A9 | R3 | Reader opens archive | Previous editions are listed and open |
-| A10 | R4 | Reader generates signals (clicks, skips, others chosen at design) | A later edition reflects them, shown by a same-reader before/after comparison |
+| A10 | R4 | Reader generates engagement events | A later edition reflects the updated posteriors (state.md § Decisions, learning mechanism), shown by a same-reader before/after comparison on controlled candidates; persona simulation reports nDCG@10 against onboarding-only, recency and random baselines |
 
-Failure behavior (handoff §9: missing input, source/model failure, out-of-scope input) gets acceptance cases once the pipeline is designed.
+## Glossary
+
+Canonical terms; use them in code, UI copy and docs.
+
+| Term | Meaning |
+| --- | --- |
+| Reader | An authenticated account with its own profile and event log |
+| Item | One ingested piece of content from one source: article, image, video or audio, with publisher, URL and publication time |
+| Story | A cluster of items, across sources and modalities, about the same event; the unit that is ranked, synthesized and shown |
+| Synthesis | One model output per story reasoning over all its items together, with per-claim citations to items |
+| Edition | The committed, immutable set of stories for one reader and one date, rendered as web page and PDF |
+| Live / backfilled edition | Built on its own date / built today from items published on a past date |
+| Impression | A story shown in an edition; **seen** when ≥50% of it was in the viewport for ≥1 s |
+| Engagement event | Binary outcome per seen impression (1 = engaged, 0 = not), the only input to learning |
+| Skip | Web-only reading overlay that hides a story; stored as an event; never alters the edition |
+| Exploring slot | An edition slot filled by Thompson sampling to test uncertain interests; labeled in the UI |
+| Profile | Derived state (topic and source posteriors, follows, mutes), recomputable from the event log |
+
+### Failure cases
+
+Ratified 2026-10-17. No case may produce fabricated text, a mislabeled stale edition, or an endless spinner.
+
+| ID | Case | Pass when |
+| --- | --- | --- |
+| F1 | One source fails or exceeds its fetch timeout | Source is skipped; edition builds from the rest; reader sees "N sources unavailable" |
+| F2 | All sources fail | No new edition is committed; last successful edition is shown with its own date and a banner |
+| F3 | Model call fails or returns invalid output | Handled per the retry policy below; on exhaustion, story falls back to keyword topics + feed snippet labeled "summary unavailable" |
+| F4 | PDF render fails | Web edition stays available; reader sees an error and a retry control |
+| F5 | Onboarding submitted with no interests | Submission is blocked with a stated reason |
+| F6 | An interest has no matching items | Section shows "No stories today for X"; no filler |
+
+**Retry policy (F1, F3).** Classify by the actual error, not by a blanket retry count:
+
+| Error class | Examples | Action |
+| --- | --- | --- |
+| Transient | HTTP 429, 500, 502, 503, 504, timeout, connection reset | Exponential backoff with full jitter; honor `Retry-After`; max 3 attempts within a per-call time budget; then next provider in the fallback chain, then F3 fallback |
+| Invalid output | Unparseable JSON, schema-validation failure | One repair retry that feeds the validation error back to the model; then F3 fallback |
+| Permanent request error | HTTP 400, content blocked by safety filter | No retry; F3 fallback for that item; log the reason |
+| Configuration error | HTTP 401, 403, missing key, unknown model | No retry; fail fast; surface a setup error naming the variable or model |
+| Unknown | Anything unclassified | One retry; then treat as permanent; log full error for classification |
+
+Exact budgets (attempts, seconds, tokens) live in code configuration and are recorded in `README.md` once set.
 
 ## Judge-evidence mapping
 
