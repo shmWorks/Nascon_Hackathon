@@ -37,7 +37,7 @@ def _print_image(url):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def edition_html(eid: int, print_mode: bool) -> str:
+def edition_html(eid: int, print_mode: bool, printing: bool = False) -> str:
     with db.tx() as con:
         e = con.execute("SELECT * FROM editions WHERE id=?", (eid,)).fetchone()
     body = json.loads(e["body"])
@@ -47,7 +47,7 @@ def edition_html(eid: int, print_mode: bool) -> str:
         body["lead"] = body["stories"][body["lead"]["idx"]]
         for sec in body["sections"]:
             sec["stories"] = [body["stories"][s["idx"]] for s in sec["stories"]]
-    return env.get_template("edition.html").render(e=body, eid=eid, print_mode=print_mode, pdf=bool(e["pdf_path"]))
+    return env.get_template("edition.html").render(e=body, eid=eid, print_mode=print_mode, pdf=bool(e["pdf_path"]), printing=printing)
 
 
 def pdf_for(eid: int) -> str | None:

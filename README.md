@@ -37,7 +37,7 @@ Demo readers: `ayesha@demo.paper`, `bilal@demo.paper`, `sara@demo.paper`, passwo
 
 ![Architecture](diagrams/architecture.svg)
 
-Source: [`diagrams/architecture.mmd`](diagrams/architecture.mmd) (editable: `architecture.excalidraw`).
+Source: hand-authored [`diagrams/architecture.svg`](diagrams/architecture.svg); PNG for submission: [`diagrams/architecture.png`](diagrams/architecture.png).
 
 ### Principles
 

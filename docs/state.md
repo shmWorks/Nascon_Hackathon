@@ -14,7 +14,9 @@ Last updated: 2026-10-17 18:08 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
   - Defects found and fixed during build: cache write race under parallel builds; Gemini request with no timeout hung the pipeline; message-substring error classification retried a programming error; first-edition "preparing" could spin forever after a restart; topic chips unreachable by keyboard; retry ignored server `retryDelay` and per-day quota.
   - Gemini quota verified by probe: per project per model; `gemini-3.6-flash` daily free limit = 20 requests (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`).
   - PR #2 merged to `main` (b68d824), issue #1 closed; CI green on `3adfce6`.
-  - F6 notice ("No stories today for X") implemented after merge; not yet exercised in a fresh build.
+  - F6 notice ("No stories today for X") merged (PR #3); not yet exercised in a fresh build.
+  - End-to-end review vs brief (18:30): R2–R4 met with evidence; R1 met, UX improved (37 topics grouped into 5 labeled clusters, keyboard accessible); deployed freshness gap fixed (first visit after 06:00 PKT ingests the day and builds editions on demand; browser "Save as PDF" fallback where the host has no Chromium) — PR #4. Learning is visible within one session: the profile page re-folds events immediately after more/less/skip.
+  - Differentiators with evidence: claim-level quote verification ("N of M claims verified"); multi-source story synthesis; principled Bayesian learning measured against baselines (A10); exploring slots against filter bubbles; whole-web 7-day archive from GDELT; failure cases surfaced honestly; CI-gated PR flow. A win cannot be proven: the rubric is undisclosed.
   - Not done: deployment — Render MCP needs the user's OAuth authorization; `render.yaml` blueprint and CI deploy hook are ready.
 - Brief extracted: [`brief.md`](brief.md) (verbatim) and [`spec.md`](spec.md) (requirements, acceptance cases, provisional judge mapping).
 - Stack installed: uv project (`pyproject.toml`, `uv.lock`), Python 3.14.4; FastAPI, Jinja2, httpx, feedparser, Playwright, google-genai, argon2-cffi import cleanly. No base repository; no application code yet.

@@ -84,6 +84,27 @@ def latest_day():
     return date.fromisoformat(r["d"]) if r and r["d"] else datetime.now(config.PKT).date()
 
 
+_ingesting: set[date] = set()
+
+
+def _ensure_today():
+    """Fresh every day (R2) on any host: the first visit after the 06:00 PKT cutoff ingests that edition day once."""
+    from . import ingest
+
+    now = datetime.now(config.PKT)
+    today = now.date() if now.hour >= config.EDITION_CUTOFF_HOUR else now.date() - timedelta(days=1)
+    with db.tx() as con:
+        have = con.execute("SELECT 1 FROM items WHERE day=? AND vec IS NOT NULL LIMIT 1", (today.isoformat(),)).fetchone()
+    with _build_lock:
+        if have or today in _ingesting:
+            return
+        _ingesting.add(today)
+    try:
+        ingest.run_day(today)
+    finally:
+        _ingesting.discard(today)
+
+
 def _build_async(reader_id):
     from . import edition
 
@@ -92,6 +113,7 @@ def _build_async(reader_id):
             return
         _building.add(reader_id)
     try:
+        _ensure_today()
         edition.build_edition(reader_id, latest_day(), "live")
     finally:
         _building.discard(reader_id)
@@ -116,7 +138,14 @@ def home(request: Request):
         # Self-healing: a build lost to a restart or failure is restarted, so "preparing" never spins forever.
         threading.Thread(target=_build_async, args=(r["id"],), daemon=True).start()
         return page("preparing.html", request, reader=r)
-    return HTMLResponse(render.edition_html(e["id"], print_mode=False))
+    with db.tx() as con:
+        last_day = con.execute("SELECT day FROM editions WHERE id=?", (e["id"],)).fetchone()["day"]
+    now = datetime.now(config.PKT)
+    due = (now.date() if now.hour >= config.EDITION_CUTOFF_HOUR else now.date() - timedelta(days=1)).isoformat()
+    printing = last_day < due
+    if printing:  # today's edition not printed yet: build it in the background, show the latest one meanwhile
+        threading.Thread(target=_build_async, args=(r["id"],), daemon=True).start()
+    return HTMLResponse(render.edition_html(e["id"], print_mode=False, printing=printing))
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -163,14 +192,29 @@ def signup(request: Request, name: str = Form(...), email: str = Form(...), pass
     return resp
 
 
+GROUPS = json.loads((config.ROOT / "paper" / "data" / "topic_groups.json").read_text(encoding="utf-8"))
+
+
+def _grouped(con):
+    """Catalog topics in labeled groups; any topic missing from the groups file still appears under 'More'."""
+    by_slug = {t["slug"]: t for t in topics.catalog(con)}
+    out, used = [], set()
+    for label, slugs in GROUPS:
+        items = [by_slug[s] for s in slugs if s in by_slug]
+        used.update(s for s in slugs if s in by_slug)
+        out.append((label, items))
+    rest = [t for s, t in by_slug.items() if s not in used]
+    return out + ([("More", rest)] if rest else [])
+
+
 @app.get("/onboarding", response_class=HTMLResponse)
 def onboarding_form(request: Request):
     r = current_reader(request)
     if not r:
         return RedirectResponse("/login", status_code=303)
     with db.tx() as con:
-        cat = topics.catalog(con)
-    return page("onboarding.html", request, reader=r, catalog=cat, error=None)
+        groups = _grouped(con)
+    return page("onboarding.html", request, reader=r, groups=groups, error=None)
 
 
 @app.post("/onboarding")
@@ -183,8 +227,8 @@ async def onboarding(request: Request, background: BackgroundTasks):
     free = [s.strip() for s in (form.get("free") or "").split(",") if s.strip()][:5]
     if not chips and not free:  # F5
         with db.tx() as con:
-            cat = topics.catalog(con)
-        return page("onboarding.html", request, reader=r, catalog=cat, error="Pick at least one topic or describe an interest, so your paper has something to follow.")
+            groups = _grouped(con)
+        return page("onboarding.html", request, reader=r, groups=groups, error="Pick at least one topic or describe an interest, so your paper has something to follow.")
     with db.tx() as con:
         personas.onboard(con, r["id"], chips, free)
         db.add_event(con, r["id"], datetime.now(UTC).isoformat(), latest_day().isoformat(), "onboarding", payload={"topics": chips, "free": free})

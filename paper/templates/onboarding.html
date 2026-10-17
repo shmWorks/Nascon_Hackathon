@@ -6,10 +6,13 @@
 {% if error %}<div class="error">{{ error }}</div>{% endif %}
 <form method="post" action="/onboarding">
   <div class="card">
-    <strong>Topics</strong>
-    <div class="chips" style="margin-top:10px">
-      {% for t in catalog %}<label class="chip"><input type="checkbox" name="topic" value="{{ t.slug }}"><span>{{ t.label }}</span></label>{% endfor %}
-    </div>
+    <strong>Topics</strong> <span class="muted">— pick 3 to 6 for the best first paper</span>
+    {% for label, items in groups %}
+    <fieldset style="border:0;padding:0;margin:14px 0 0">
+      <legend class="muted" style="margin-bottom:6px">{{ label }}</legend>
+      <div class="chips">{% for t in items %}<label class="chip"><input type="checkbox" name="topic" value="{{ t.slug }}"><span>{{ t.label }}</span></label>{% endfor %}</div>
+    </fieldset>
+    {% endfor %}
   </div>
   <div class="card">
     <label for="free"><strong>Anything specific?</strong> Separate with commas — e.g. "Pakistan cricket team, AI regulation in the EU"</label>
