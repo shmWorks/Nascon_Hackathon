@@ -13,3 +13,17 @@ jobs:
       - run: uv run pytest -q
         env:
           PAPER_DATA: ${{ runner.temp }}/data
+  container:
+    # Guard at the deploy boundary: build the exact image Render builds, start it, and require a healthy app.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t paper .
+      - run: docker run -d --name paper -p 8000:8000 -e PORT=8000 paper
+      - name: Wait for /healthz and the demo landing page
+        run: |
+          for i in $(seq 1 60); do curl -fsS localhost:8000/healthz && break; sleep 2; done
+          curl -fsS localhost:8000/healthz
+          curl -fsS localhost:8000/ | grep -q "Morning"
+      - if: failure()
+        run: docker logs paper
