@@ -27,3 +27,4 @@ extend-exclude = ["spikes"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
