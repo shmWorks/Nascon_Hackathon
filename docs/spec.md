@@ -48,7 +48,7 @@ Derived from brief text. Observable form is proposed; the user ratifies changes 
 | A1 | R1 | New reader completes onboarding | Interests, free-text interests and calibration responses are persisted as events; the first edition's ranking is computed from them |
 | A2 | R2 | Edition generated for a reader on a given day | A PDF is rendered at commit time and stored for that reader and date, with newspaper-inspired layout |
 | A3 | R2 | Three readers with non-overlapping interests (demo personas) | Their editions differ in selected stories and presentation in line with their interests |
-| A4 | R2, R3 | Daily freshness, 7-day window | For each day D−6…D, an edition is built only from items published that day, using the profile as it stood that day, with that day's signals replayed before D+1. Days before today are labeled "backfilled"; today is "live". A real unattended next-day run is recorded as unverified |
+| A4 | R2, R3 | Daily freshness, 7-day window | For each day D−6…D, an edition is built only from items with source time in [D−1 06:00, D 06:00) PKT, using the profile as it stood that day, with that day's signals replayed before D+1; signals on backfilled days come from the persona simulator and are labeled "simulated reader". Days before today are labeled "backfilled"; today is "live". A real unattended next-day run is recorded as unverified |
 | A5 | R3 | Web edition vs PDF | Both render the same committed edition (same stories); web skips do not alter the PDF or archive |
 | A6 | R3 | Reader clicks an article | Original article URL opens |
 | A7 | R3 | Reader skips an article | Story is hidden from the web reading view only (overlay); skip is stored as an event; the committed edition is unchanged |
@@ -64,8 +64,9 @@ Canonical terms; use them in code, UI copy and docs.
 | --- | --- |
 | Reader | An authenticated account with its own profile and event log |
 | Item | One ingested piece of content from one source: article, image, video or audio, with publisher, URL and publication time |
+| Topic | A labeled vector: an IPTC Media Topics node or a reader's free-text interest; items are assigned to nearest topics by embedding similarity; learning keeps one posterior per topic |
 | Story | A cluster of items, across sources and modalities, about the same event; the unit that is ranked, synthesized and shown |
-| Synthesis | One model output per story reasoning over all its items together, with per-claim citations to items |
+| Synthesis | One model output per story reasoning over all its items together; each claim cites item ids with a verbatim quote that code verifies against the item's text, and unverified claims are dropped |
 | Edition | The committed, immutable set of stories for one reader and one date, rendered as web page and PDF |
 | Live / backfilled edition | Built on its own date / built today from items published on a past date |
 | Impression | A story shown in an edition; **seen** when ≥50% of it was in the viewport for ≥1 s |

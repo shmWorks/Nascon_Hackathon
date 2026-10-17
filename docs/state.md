@@ -2,11 +2,11 @@
 
 Authoritative for verified status, blockers, next action and consequential decisions. Update when a milestone passes or fails, a blocker changes, a decision changes, or work is handed off. Requirement IDs (R*, A*) refer to [`spec.md`](spec.md).
 
-Last updated: 2026-10-17 14:50 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
+Last updated: 2026-10-17 16:45 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Verified status
 
-- Grilling complete (15 decisions, below) and adversarial review of spec/state complete; review fixes pending user decisions are listed under Blockers.
+- Grilling complete (15 decisions, below) and adversarial review of spec/state complete; review decisions D1–D6 ratified. Architecture: [`README.md` § Architecture](../README.md#architecture).
 - Brief extracted: [`brief.md`](brief.md) (verbatim) and [`spec.md`](spec.md) (requirements, acceptance cases, provisional judge mapping).
 - Stack installed: uv project (`pyproject.toml`, `uv.lock`), Python 3.14.4; FastAPI, Jinja2, httpx, feedparser, Playwright, google-genai, argon2-cffi import cleanly. No base repository; no application code yet.
 - Spikes (2026-10-17, scripts in `spikes/`):
@@ -26,14 +26,24 @@ Last updated: 2026-10-17 14:50 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 
 ## Blockers and open questions
 
-- Open review decisions (adversarial review 14:45, proposals awaiting user): D1 tiered scope + cut order to fit 5 h to freeze; D2 backfill signals come from a labeled persona simulator; D3 topic taxonomy = IPTC Media Topics, items assigned by embedding similarity; D4 edition day = items with source time in [D−1 06:00, D 06:00) PKT; D5 free-text interest phrases (no identity) may be sent to the free tier, disclosed in UI; D6 CSRF via SameSite=Lax + Origin check instead of tokens.
 - Official rubric/weights and named NaSCon'26 judges remain unverified. Sponsor-fit evidence is proposed in `spec.md`; research recommendations are not added acceptance gates.
 
-## Next action
+## Plan to freeze (20:00 PKT)
 
-1. User decides the open review items under Blockers (D1–D6).
-2. Write architecture + time-boxed task plan to 20:00 freeze (handoff §2 steps 4–5), then run `/plan-eng-review` on it.
-3. Build the walking skeleton first: today's ingestion → one reader's edition → web + PDF, before backfill, learning or auth polish.
+Each milestone ends on its done-check; do not start the next until it passes. If a milestone overruns by 15 min, apply the next cut.
+
+| # | Window | Build | Done when |
+| --- | --- | --- | --- |
+| M0 | 16:50–17:05 | Package `paper/`, config, SQLite schema, content-addressed cache, deps (`trafilatura`, `numpy`) | `uv run python -m paper --help` runs; schema creates `data/paper.db` |
+| M1 | 17:05–17:45 | Shared stages for one day: ingest (GKG + RSS) → allowlist → embed → topics (IPTC + custom) | Items for today stored with topics; rerun makes zero new external calls |
+| M2 | 17:45–18:25 | Per-reader: rank → cluster → select → retrieve → synthesize (quote-verified) → commit → HTML + PDF | One seeded reader's edition opens in the browser and as a PDF (A2, A5) — **walking skeleton** |
+| M3 | 18:25–19:05 | Web: auth, onboarding (chips + free text), edition view with click/skip/feedback/impression events, archive, download | Browser: sign up → onboard → read → skip → download PDF (A1, A6–A9, F5) |
+| M4 | 19:05–19:35 | Learn (posterior fold), simulator, backfill D−6…D−1 newest-first for 3 personas, "Three things to know" | Same persona's edition changes in line with its simulated signals (A3, A4, A10, R5) |
+| M5 | 19:35–20:00 | Failure checks F1–F6, README commands, browser test of A8, freeze commit | Fresh-terminal run passes; working tree clean |
+
+**Cut order** (first cut first): onboarding calibration step → nDCG baselines (keep before/after) → exploring slots → free-text custom topics (keep IPTC chips) → backfill days beyond D−3 → image evidence in synthesis (keep images in UI). Never cut M2.
+
+**Deferred** (D1): Google News source, Wayback feed backfill, Ollama/Codex fallbacks, video and audio stages, audio briefing, recall quiz.
 
 ## Decisions
 
@@ -62,4 +72,11 @@ Last updated: 2026-10-17 14:50 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
 - Model routing across per-model free budgets: tagging `gemini-3.1-flash-lite`; synthesis `gemini-3.5-flash-lite`; lead stories `gemini-3.8-flash`; in-Gemini fallback `gemini-3.6-flash` → Gemma 4 → `gemini-3-flash-preview`; then Ollama Cloud → Codex. Later: `gemini-3.5-transcribe` (podcast audio), `gemini-3.8-flash-lite-tts` (R5 audio briefing) | Limits are per model within one project, so routing by task multiplies usable budget within normal use | Each model needs its own config entry and budget | A model is unavailable to this project or its output quality fails the spike
 - Sources: GDELT GKG 2.1 raw files sampled every 3 h as the across-the-web candidate pool (any past day; titles, direct URLs, images, video embeds, themes); publisher RSS catalog for niche-topic depth; Wayback Machine feed snapshots to backfill the RSS catalog for past days; Google News RSS `after:/before:` for free-text interests at headline level. All files and responses cached on disk; downloaded once, shared by all readers | Spikes: GDELT DOC API unusable on this shared egress; GKG files work without throttle; high-volume RSS reaches only 0–2 days back; cricket had 0 rows in one 15-minute GKG file | 7-day GKG download ≈ 56 files, ~120 MB, ~3 min | Coverage gaps appear for a persona's interests
 - Source quality gate: deterministic domain allowlist (catalog domains + most frequent news domains in GKG); unknown domains may only fill exploring slots | GKG includes every English-language site, including spam | Allowlist must be built before ranking | A persona's niche is served mainly by unlisted domains
+- D1 Tiered scope with cut order and walking skeleton first (Plan to freeze, above) | 15 individually sound decisions exceed 5 h jointly | Deferred items listed in the plan | Ahead of schedule at M4
+- D2 Backfilled days get signals from the persona simulator, labeled "simulated reader"; real signals start today | No reader existed on past days; one simulator serves both backfill and A10 evaluation | Demo labels simulated behavior | —
+- D3 Topics = IPTC Media Topics nodes plus free-text custom topics, all as labeled vectors; items assigned by embedding similarity, shared across readers | One taxonomy for onboarding, tagging and learning; news-industry standard; ~40 embedding calls/day vs ~200 tagging calls | IPTC data file committed with attribution | Topic assignment quality fails inspection
+- D4 Edition day D = items with source time in [D−1 06:00, D 06:00) PKT | A morning paper covers the 24 h before print; removes UTC/PKT ambiguity | All ingestion windows use this boundary | —
+- D5 Only public news text and interest phrases (no names, emails, events) go to the Gemini free tier; disclosed in onboarding UI | Free tier content is "used to improve our products" | Onboarding shows a one-line notice | Paid tier adopted
+- D6 CSRF defense = SameSite=Lax session cookie + Origin header check on state-changing requests; keep argon2id, server-side sessions, login rate limit | Blocks cross-site form posts at lower cost than tokens | No per-form CSRF tokens | Deployment beyond localhost
+- Adopted from review without decision: claim-level verbatim-quote verification; early quota probe; idempotent resumable stages; backfill newest-first; onboarding falls back to chips + free text if the day's pool is empty; embeddings at 256 dims (`gemini-embedding-2` supports 128–3072) to keep storage small | Correctness and quota safety | — | —
 - Sponsor portfolio informs quality tradeoffs, not a product pivot | Public evidence supports practical AI workflows but establishes no internal news-tool demand or private rubric | Preserve R1–R4; validate proposed semantics before changing acceptance cases | Organizer provides new requirements or sponsor/user validation changes the target
