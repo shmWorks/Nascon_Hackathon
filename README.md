@@ -26,9 +26,9 @@ Run, test and demo commands are added here as each first runs successfully.
 
 ```text
                  shared, per edition day D                          per reader R, day D
-GKG files + RSS ─► ingest ─► allowlist ─► embed ─► topics ──┐
+GKG files + RSS ─► ingest ─► allowlist ─► embed ───────────┐
                                                             ├─► rank ─► cluster ─► select ─► retrieve ─► synthesize ─► commit ─► render web + PDF
-reader profile (fold of event log) ─────────────────────────┘                                  (shared cache)  (shared cache)
+reader topics + profile (fold of event log) ────────────────┘                                  (shared cache)  (shared cache)
                                                                                                                          │
 web UI: onboarding, edition, archive, download ──► events (impressions, clicks, dwell, skip, feedback) ──► event log ─────┘
 ```
@@ -40,15 +40,15 @@ web UI: onboarding, edition, archive, download ──► events (impressions, cl
 | `ingest` | Pull GDELT GKG files (every 3 h in the window) and the RSS catalog into `items` | Edition day D = source time in [D−1 06:00, D 06:00) PKT |
 | `allowlist` | Keep items from trusted domains | Domain qualifies by catalog membership, or by appearing on several days with articles that pass the retrieval check |
 | `embed` | One embedding per item title+description (`gemini-embedding-2`, 256 dims) | Batched; cached by text hash; lexical fallback if quota is exhausted |
-| `topics` | Assign each item its nearest topics | A topic is a labeled vector: IPTC Media Topics nodes, plus each reader's free-text interests as custom topics. One mechanism for both |
-| `rank` | Score candidates per reader | Score = topic posterior mean × clipped source factor; mutes remove; follows raise the prior |
+| `topics` | Topic vectors, not a pipeline stage | A topic is a labeled vector: an IPTC Media Topics node or a reader's free-text interest. Item–topic similarity is computed from stored vectors at rank time, so a topic added later applies to all items |
+| `rank` | Score candidates per reader | score = source factor × Σ over the reader's topics with cosine ≥ τ_rel of w(item, t) · E[θ_t], w = normalized similarity; τ_rel calibrated on real items; mutes remove; follows raise the prior |
 | `cluster` | Group candidate items about the same event into stories | Embedding cosine threshold within the reader's candidate set |
 | `select` | Choose the edition's ~12 stories | Top by score, cap per topic, k exploring slots by Thompson sampling seeded by hash(date, reader) |
 | `retrieve` | Get article text for selected items | Generic chain: feed body → direct fetch → Jina Reader → Wayback; accept only text that passes the title-match + length check |
-| `synthesize` | One grounded synthesis per story over all its items (text + validated image) | Claims carry item ids + a verbatim quote; code drops claims whose quote is not in the cited item's text |
+| `synthesize` | One grounded synthesis per story over all its items (text + validated image); cached by item-set hash | Claims carry item ids + a verbatim quote; code drops claims whose quote is not in the cited item's text |
 | `commit` | Freeze the edition, add "Three things to know", render HTML and PDF | Edition, layout and PDF stored once; PDF via Playwright Chromium from the same template |
 | `web` | Auth, onboarding, edition reading, archive, download, event capture | Skip is a view overlay; impressions count only when ≥50% visible for ≥1 s |
-| `learn` | Fold events into Beta posteriors per topic and source | One binary engagement outcome per seen impression; daily decay toward the onboarding prior |
+| `learn` | Fold events into Beta posteriors per topic and source | One binary engagement outcome per seen impression, credited to topics by the same weights w used in ranking; daily decay toward the onboarding prior |
 | `simulate` | Persona readers with known true interests | Generates labeled simulated events for backfilled days; same truth yields the A10 evaluation |
 
 ### State and persistence
