@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}What your paper learned — Morning Paper{% endblock %}
+{% block body %}
+<h1>What your paper learned</h1>
+<p class="lede">Each bar is how likely you are to engage with a story on that topic: grey where you started, black where your reading has taken it. Learned from {{ n_events }} reading actions{% if n_sim %} ({{ n_sim }} of them from a simulated reader on backfilled days){% endif %}.</p>
+<table>
+  <tr><th>Topic</th><th>Start → now</th><th>Your reading</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.label }}{% if not r.chosen %} <span class="muted">(discovered)</span>{% endif %}</td>
+    <td><span class="bar start" style="width:{{ (r.start*160)|round|int }}px"></span><br><span class="bar" style="width:{{ (r.now*160)|round|int }}px"></span> {{ (r.now*100)|round|int }}%</td>
+    <td class="muted">{% if r.seen %}engaged with {{ r.engaged }} of {{ r.seen }} seen{% else %}no reading yet{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted">How it works: one engaged / not-engaged outcome per story you actually saw (at least half on screen for a second). Opening, saving, "more like this" or reading a while count as engaged; skipping or "less like this" do not. Older evidence fades with a 14-day half-life.</p>
+{% endblock %}

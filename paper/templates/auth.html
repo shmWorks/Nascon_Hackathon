@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block nav %}<nav><a href="/">Home</a>{% if mode == 'login' %}<a href="/signup">Create your paper</a>{% else %}<a href="/login">Sign in</a>{% endif %}</nav>{% endblock %}
+{% block body %}
+<h1>{{ 'Sign in' if mode == 'login' else 'Create your paper' }}</h1>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post" action="/{{ mode }}" class="card">
+  {% if mode == 'signup' %}<label for="name">Your name (it goes on the masthead)</label><input id="name" name="name" type="text" required autocomplete="given-name">{% endif %}
+  <label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="email">
+  <label for="password">Password{% if mode == 'signup' %} (at least 8 characters){% endif %}</label>
+  <input id="password" name="password" type="password" required autocomplete="{{ 'current-password' if mode == 'login' else 'new-password' }}">
+  <button type="submit">{{ 'Sign in' if mode == 'login' else 'Continue' }}</button>
+</form>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block nav %}<nav><a href="/login">Sign in</a><a href="/signup">Create your paper</a></nav>{% endblock %}
+{% block body %}
+<p class="muted">Your personal morning paper</p>
+<h1>One paper. Ten minutes. Then you're done.</h1>
+<p class="lede">Every morning we read the web for you — thousands of articles — and print one finite edition about what <em>you</em> care about. Each story is merged from several sources, and every claim carries a verified quote you can check. Read it here or download it as a newspaper PDF.</p>
+<div class="grid3">
+  <div class="card"><strong>Time back</strong><p class="muted">One place instead of dozens of sites, with a clear "you're caught up" end.</p></div>
+  <div class="card"><strong>Trust</strong><p class="muted">Claims are checked against the source text; anything we can't verify is dropped, never invented.</p></div>
+  <div class="card"><strong>Gets better</strong><p class="muted">Skip, open, "more like this" — the paper learns, and shows you what it learned.</p></div>
+</div>
+<a class="btn" href="/signup">Create your paper</a> <a class="btn secondary" href="/login">Sign in</a>
+<h2>Try a ready-made reader</h2>
+<p class="muted">Three demo readers with seven days of editions. Password for all: <code>{{ demo_password }}</code></p>
+<table>
+  {% for p in personas %}<tr><td><strong>{{ p.name }}</strong></td><td>{{ p.email }}</td><td class="muted">{{ p.chips|join(", ") }}</td></tr>{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body %}
+<p class="muted">Step 1 of 1 · about 30 seconds</p>
+<h1>What should your paper follow, {{ reader.name }}?</h1>
+<p class="lede">Pick a few topics and add anything specific in your own words. This is your paper's starting point; it keeps learning from what you read.</p>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post" action="/onboarding">
+  <div class="card">
+    <strong>Topics</strong>
+    <div class="chips" style="margin-top:10px">
+      {% for t in catalog %}<label class="chip"><input type="checkbox" name="topic" value="{{ t.slug }}"><span>{{ t.label }}</span></label>{% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <label for="free"><strong>Anything specific?</strong> Separate with commas — e.g. "Pakistan cricket team, AI regulation in the EU"</label>
+    <input id="free" name="free" type="text" maxlength="400">
+    <p class="muted">Only these interest phrases are used to match stories. Your name and email never leave this service.</p>
+  </div>
+  <button type="submit">Print my first edition</button>
+</form>
+{% endblock %}

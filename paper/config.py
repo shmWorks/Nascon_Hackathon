@@ -39,7 +39,7 @@ EXPLORE_SLOTS = 2
 MAX_PER_TOPIC = 4
 TOPIC_TOP_K = 2            # an item counts toward topic t only if t is among its top-2 topics (relative across topics)
 CANDIDATES_PER_TOPIC = 30  # ... and it is among the day's top-30 items for t (relative across items)
-CLUSTER_PERCENTILE = 99.0  # same event: pair similarity in the top 1% of the candidate set's pairwise distribution
+CLUSTER_PERCENTILE = 97.0  # same event: pair similarity in the top 3% of the candidate set's pairwise distribution
 CLUSTER_MIN_JACCARD = 0.2  # ... and shared title content words (lexical confirmation)
 
 # Learning (state.md: learning mechanism). Assumptions tuned by the persona simulation.

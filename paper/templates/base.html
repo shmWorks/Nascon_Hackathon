@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Morning Paper{% endblock %}</title>
+<style>
+  :root { --ink:#141414; --muted:#5d5d5d; --rule:#d9d4c7; --paper:#fbf8f1; --accent:#8a1c1c; --ok:#1f6b3a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family: Georgia, "Times New Roman", serif; line-height:1.5; }
+  nav { display:flex; gap:18px; justify-content:flex-end; padding:10px 20px; font:14px system-ui, sans-serif; border-bottom:1px solid var(--rule); }
+  nav a { color:var(--ink); text-decoration:none; } nav a:hover { text-decoration:underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: clamp(30px, 5vw, 46px); margin: 6px 0 10px; line-height:1.1; }
+  h2 { font-size: 22px; margin: 26px 0 8px; }
+  .lede { font-size: 19px; color: #2a2a2a; }
+  .muted { color: var(--muted); font: 14px system-ui, sans-serif; }
+  .card { background:#fff; border:1px solid var(--rule); padding: 18px; margin: 14px 0; }
+  form label { display:block; font: 14px system-ui, sans-serif; margin: 10px 0 4px; }
+  input[type=text], input[type=email], input[type=password] { width:100%; padding:10px; font: 16px system-ui, sans-serif; border:1px solid #bbb; background:#fff; }
+  button, .btn { font: 600 15px system-ui, sans-serif; background: var(--ink); color:#fff; border:0; padding: 11px 18px; cursor:pointer; text-decoration:none; display:inline-block; margin-top: 14px; }
+  .btn.secondary { background:#fff; color:var(--ink); border:1px solid var(--ink); }
+  .error { background:#fdecea; border:1px solid #f5c2bd; padding:9px 12px; font: 14px system-ui, sans-serif; margin: 10px 0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip input { display:none; }
+  .chip span { display:inline-block; font: 14px system-ui, sans-serif; border:1px solid #bbb; border-radius: 18px; padding: 6px 12px; background:#fff; cursor:pointer; user-select:none; }
+  .chip input:checked + span { background: var(--ink); color:#fff; border-color: var(--ink); }
+  table { width:100%; border-collapse: collapse; font: 15px system-ui, sans-serif; }
+  td, th { padding: 8px 6px; border-bottom: 1px solid var(--rule); text-align:left; }
+  .bar { height: 8px; background: var(--ink); display:inline-block; vertical-align: middle; }
+  .bar.start { background: #c9c2b0; }
+  .grid3 { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; }
+</style>
+</head>
+<body>
+{% block nav %}<nav><a href="/">Today</a><a href="/archive">Archive</a><a href="/profile">What your paper learned</a><a href="/logout">Sign out</a></nav>{% endblock %}
+<div class="wrap">{% block body %}{% endblock %}</div>
+</body>
+</html>
