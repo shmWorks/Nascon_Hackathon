@@ -80,7 +80,9 @@ def build_edition(reader_id: int, day: date, kind: str = "live", force: bool = F
         out.append(story)
 
     # Presentation personalization (R2): lead = top story; sections ordered by interest strength.
-    lead, rest = out[0], out[1:]
+    # The lead slot showcases verified content: highest-ranked synthesized story, else the top story.
+    li = next((i for i, s in enumerate(out) if s["status"] == "synthesized"), 0)
+    lead, rest = out[li], out[:li] + out[li + 1:]
     order = sorted({s["topic"] for s in rest}, key=lambda lab: -max(prof.mean(t) for t, la in labels.items() if la == lab))
     sections = [{"topic": lab, "stories": [s for s in rest if s["topic"] == lab]} for lab in order]
     things = []

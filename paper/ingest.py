@@ -28,7 +28,7 @@ def window(day: date):
 
 
 def domain(url):
-    return urlsplit(url).netloc.lower().removeprefix("www.")
+    return (urlsplit(url).hostname or "").removeprefix("www.")  # hostname drops ports like :443
 
 
 def canonical(url):
