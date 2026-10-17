@@ -192,14 +192,29 @@ def signup(request: Request, name: str = Form(...), email: str = Form(...), pass
     return resp
 
 
+GROUPS = json.loads((config.ROOT / "paper" / "data" / "topic_groups.json").read_text(encoding="utf-8"))
+
+
+def _grouped(con):
+    """Catalog topics in labeled groups; any topic missing from the groups file still appears under 'More'."""
+    by_slug = {t["slug"]: t for t in topics.catalog(con)}
+    out, used = [], set()
+    for label, slugs in GROUPS:
+        items = [by_slug[s] for s in slugs if s in by_slug]
+        used.update(s for s in slugs if s in by_slug)
+        out.append((label, items))
+    rest = [t for s, t in by_slug.items() if s not in used]
+    return out + ([("More", rest)] if rest else [])
+
+
 @app.get("/onboarding", response_class=HTMLResponse)
 def onboarding_form(request: Request):
     r = current_reader(request)
     if not r:
         return RedirectResponse("/login", status_code=303)
     with db.tx() as con:
-        cat = topics.catalog(con)
-    return page("onboarding.html", request, reader=r, catalog=cat, error=None)
+        groups = _grouped(con)
+    return page("onboarding.html", request, reader=r, groups=groups, error=None)
 
 
 @app.post("/onboarding")
@@ -212,8 +227,8 @@ async def onboarding(request: Request, background: BackgroundTasks):
     free = [s.strip() for s in (form.get("free") or "").split(",") if s.strip()][:5]
     if not chips and not free:  # F5
         with db.tx() as con:
-            cat = topics.catalog(con)
-        return page("onboarding.html", request, reader=r, catalog=cat, error="Pick at least one topic or describe an interest, so your paper has something to follow.")
+            groups = _grouped(con)
+        return page("onboarding.html", request, reader=r, groups=groups, error="Pick at least one topic or describe an interest, so your paper has something to follow.")
     with db.tx() as con:
         personas.onboard(con, r["id"], chips, free)
         db.add_event(con, r["id"], datetime.now(UTC).isoformat(), latest_day().isoformat(), "onboarding", payload={"topics": chips, "free": free})
