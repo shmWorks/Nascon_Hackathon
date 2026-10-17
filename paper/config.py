@@ -24,7 +24,8 @@ MODELS = {  # per-model free budgets (state.md: model routing)
 EMBED_MODEL = "minishlab/potion-retrieval-32M"  # local static embeddings (embed.py); no API quota
 EMBED_DIM = 256
 LLM_MAX_ATTEMPTS = 3     # transient-error attempts per model before falling back
-LLM_CALL_BUDGET_S = 60   # wall-clock budget per logical call across retries
+LLM_CALL_BUDGET_S = 90   # wall-clock budget per logical call across retries and models
+LLM_REQUEST_TIMEOUT_MS = 45_000  # per HTTP request to the model API
 
 USER_AGENT = "MorningPaperBot/0.1 (+https://github.com/shmWorks/Nascon_Hackathon)"
 FETCH_TIMEOUT_S = 8

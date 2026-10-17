@@ -23,14 +23,19 @@ def client():
         if not config.GEMINI_API_KEY:
             raise LLMUnavailable("GEMINI_API_KEY is not set")
         from google import genai
+        from google.genai import types
 
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        # Per-request timeout: a hung request must become a classified transient error, not a stuck pipeline.
+        _client = genai.Client(api_key=config.GEMINI_API_KEY, http_options=types.HttpOptions(timeout=config.LLM_REQUEST_TIMEOUT_MS))
     return _client
 
 
 def classify(err: Exception) -> str:
     code = getattr(err, "code", None) or getattr(err, "status_code", None)
     msg = str(err).lower()
+    name = type(err).__name__.lower()
+    if any(k in name for k in ("timeout", "connecterror", "readerror", "remoteprotocol", "networkerror")):
+        return "transient"
     if code in (429, 500, 502, 503, 504) or "timeout" in msg or "temporarily" in msg or "connection" in msg:
         return "transient"
     if code in (401, 403) or "api key" in msg or ("model" in msg and "not found" in msg) or code == 404:

@@ -26,3 +26,10 @@ def test_error_classes():
     assert llm.classify(_E(400)) == "permanent"
     assert llm.classify(_E(401)) == "config"
     assert llm.classify(_E(None, "weird")) == "unknown"
+
+
+def test_network_timeouts_are_transient():
+    import httpx
+
+    assert llm.classify(httpx.ConnectTimeout("")) == "transient"
+    assert llm.classify(httpx.ReadTimeout("")) == "transient"

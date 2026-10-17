@@ -10,7 +10,28 @@ uv run playwright install chromium
 cp .env.example .env   # then set GEMINI_API_KEY
 ```
 
-Run, test and demo commands are added here as each first runs successfully.
+## Commands
+
+| Task | Command |
+| --- | --- |
+| Create DB and load topics | `uv run python -m paper init` |
+| Shared stages for a day (ingest, allowlist, embed) | `uv run python -m paper run-day --day 2026-10-17` |
+| Build one reader's edition | `uv run python -m paper build --reader 2 --day 2026-10-17` |
+| Seed 3 personas + 7 days of editions with simulated reading | `uv run python -m paper demo --days 7` |
+| Learning evaluation vs baselines (A10) | `uv run python -m paper evaluate` |
+| Export demo data for deployment | `uv run python -m paper export-demo` |
+| Run the web app | `uv run uvicorn paper.web:app --port 8000` |
+| Tests (offline, no API key) | `uv run pytest -q` |
+| Lint | `uv run ruff check paper tests` |
+
+Demo readers: `ayesha@demo.paper`, `bilal@demo.paper`, `sara@demo.paper`, password `morningpaper`.
+
+## Deployment and CI/CD
+
+- **CI** (`.github/workflows/ci.yml`): every push runs `ruff` and `pytest`; on `main`, a green run triggers the Render deploy hook (`RENDER_DEPLOY_HOOK` secret). Deploys never bypass tests.
+- **Host:** Render free web service from the `Dockerfile`. The embedding model is baked into the image. The free disk is ephemeral, so `demo_data/` (personas, editions, PDFs, latest day's items) ships in the image; sign-ups made on the live site reset on restart.
+- **Server PDFs:** the image has no Chromium (free tier has 512 MB RAM); demo PDFs are pre-rendered. A new reader's live edition shows the honest "PDF not available" notice with a retry (F4).
+
 
 ## Architecture
 
