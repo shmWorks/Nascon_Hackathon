@@ -37,3 +37,10 @@ def test_network_timeouts_are_transient():
 
     assert llm.classify(httpx.ConnectTimeout("")) == "transient"
     assert llm.classify(httpx.ReadTimeout("")) == "transient"
+
+
+def test_quota_hints_distinguish_daily_from_per_minute():
+    daily = _E(429, "{'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'retryDelay': '39368s'}")
+    minute = _E(429, "{'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'retryDelay': '23s'}")
+    assert llm._retry_after(daily) == (39368.0, True)
+    assert llm._retry_after(minute) == (23.0, False)

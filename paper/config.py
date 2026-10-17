@@ -18,8 +18,8 @@ EDITION_CUTOFF_HOUR = 6  # edition D covers source time in [D-1 06:00, D 06:00) 
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 MODELS = {  # per-model free budgets (state.md: model routing)
-    "synth": ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemma-4-26b-a4b-it", "gemini-3-flash-preview"],
-    "lead": ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"],
+    "synth": ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.7-flash", "gemma-4-26b-a4b-it", "gemini-3-flash-preview", "gemini-3.6-flash"],
+    "lead": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-26b-a4b-it"],
 }
 EMBED_MODEL = "minishlab/potion-retrieval-32M"  # local static embeddings (embed.py); no API quota
 EMBED_DIM = 256

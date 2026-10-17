@@ -5,12 +5,23 @@ Owns: input-hash cache, error-classified retry (spec.md Failure cases), model fa
 import json
 import logging
 import random
+import re
+import threading
 import time
 
 from . import cache, config
 
 log = logging.getLogger("paper.llm")
 _client = None
+_exhausted: dict[str, float] = {}  # model -> monotonic time until which its daily quota is spent
+_concurrency = threading.BoundedSemaphore(2)  # avoid per-minute bursts across parallel builds
+
+
+def _retry_after(err) -> tuple[float | None, bool]:
+    """(seconds, per_day) from the API's own RetryInfo / QuotaFailure details."""
+    s = str(err)
+    m = re.search(r"retryDelay'?:\s*'?(\d+(?:\.\d+)?)s", s)
+    return (float(m[1]) if m else None), ("PerDay" in s)
 
 
 class LLMUnavailable(Exception):
@@ -70,16 +81,19 @@ def generate_json(role: str, prompt: str, schema, images=()):
     deadline = time.monotonic() + config.LLM_CALL_BUDGET_S
     last = None
     for model in config.MODELS[role]:
+        if _exhausted.get(model, 0) > time.monotonic():
+            continue  # daily quota spent: skip without wasting a request
         repair = None
         for attempt in range(config.LLM_MAX_ATTEMPTS):
             if time.monotonic() > deadline:
                 raise LLMUnavailable(f"time budget exhausted: {last}")
             try:
                 contents = parts if repair is None else parts + [f"Your previous output was invalid: {repair}. Return valid JSON only."]
-                r = client().models.generate_content(
-                    model=model, contents=contents,
-                    config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema, temperature=0.2),
-                )
+                with _concurrency:
+                    r = client().models.generate_content(
+                        model=model, contents=contents,
+                        config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema, temperature=0.2),
+                    )
                 try:
                     out = json.loads(r.text)
                 except (json.JSONDecodeError, TypeError) as e:
@@ -95,9 +109,18 @@ def generate_json(role: str, prompt: str, schema, images=()):
                     raise  # never retry or mask a programming error
                 last = e
                 kind = classify(e)
-                log.warning("llm %s %s attempt %d: %s", model, kind, attempt + 1, str(e)[:300])
+                log.warning("llm %s %s attempt %d: %s", model, kind, attempt + 1, str(e)[:1500] if "429" in str(e)[:40] else str(e)[:300])
                 if kind == "transient":
-                    time.sleep(min(30, random.uniform(0, 2 ** (attempt + 1))))  # full jitter
+                    delay, per_day = _retry_after(e)
+                    if per_day or (delay and delay > config.LLM_CALL_BUDGET_S):
+                        _exhausted[model] = time.monotonic() + (delay or 3600)
+                        log.warning("llm %s quota exhausted for %.0fs — next model", model, delay or 3600)
+                        break
+                    remaining = deadline - time.monotonic()
+                    wait = delay + random.uniform(0, 1) if delay else random.uniform(0, 2 ** (attempt + 1))  # server hint, else full jitter
+                    if wait >= remaining:
+                        break
+                    time.sleep(wait)
                     continue
                 if kind == "unknown" and attempt == 0:
                     continue
