@@ -13,7 +13,9 @@ Last updated: 2026-10-17 18:08 PKT. Code freeze 20:00 PKT; deadline 21:00 PKT.
   - A10 persona simulation, nDCG@10 mean over 7 days (learned / onboarding-only / recency / random): Ayesha 0.939 / 0.747 / 0.155 / 0.126; Bilal 0.890 / 0.837 / 0.146 / 0.104; Sara 0.789 / 0.776 / 0.113 / 0.142. Simulator and model share an author: proves the mechanism learns under stated assumptions, not real-reader value.
   - Defects found and fixed during build: cache write race under parallel builds; Gemini request with no timeout hung the pipeline; message-substring error classification retried a programming error; first-edition "preparing" could spin forever after a restart; topic chips unreachable by keyboard; retry ignored server `retryDelay` and per-day quota.
   - Gemini quota verified by probe: per project per model; `gemini-3.6-flash` daily free limit = 20 requests (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`).
-  - Not done: deployment (Render authorization pending with user).
+  - PR #2 merged to `main` (b68d824), issue #1 closed; CI green on `3adfce6`.
+  - F6 notice ("No stories today for X") implemented after merge; not yet exercised in a fresh build.
+  - Not done: deployment — Render MCP needs the user's OAuth authorization; `render.yaml` blueprint and CI deploy hook are ready.
 - Brief extracted: [`brief.md`](brief.md) (verbatim) and [`spec.md`](spec.md) (requirements, acceptance cases, provisional judge mapping).
 - Stack installed: uv project (`pyproject.toml`, `uv.lock`), Python 3.14.4; FastAPI, Jinja2, httpx, feedparser, Playwright, google-genai, argon2-cffi import cleanly. No base repository; no application code yet.
 - Spikes (2026-10-17, scripts in `spikes/`):

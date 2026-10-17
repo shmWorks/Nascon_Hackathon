@@ -90,7 +90,10 @@ def build_edition(reader_id: int, day: date, kind: str = "live", force: bool = F
             things = synth.three_things(syn)
         except llm.LLMUnavailable:
             things = []
+    shown_topics = {t for st in stories for t in st["weights"]}
+    empty = sorted(labels[t] for t in reader_topics if t not in shown_topics and t not in prof.muted_topics and t in labels)  # F6
     body = {"day": day.isoformat(), "kind": kind, "reader": reader["name"], "lead": lead, "sections": sections, "stories": out,
+            "empty_topics": empty,
             "three_things": things, "sources_unavailable": unreadable, "generated": datetime.now(config.PKT).isoformat(timespec="minutes")}
     for k, s in enumerate(out):
         s["idx"] = k
