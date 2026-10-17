@@ -7,8 +7,6 @@ import logging
 import random
 import time
 
-import numpy as np
-
 from . import cache, config
 
 log = logging.getLogger("paper.llm")
@@ -96,34 +94,3 @@ def generate_json(role: str, prompt: str, schema, images=()):
                     raise LLMUnavailable(f"configuration error: {e}") from e
                 break  # permanent / config(model) / unknown twice: next model
     raise LLMUnavailable(str(last))
-
-
-def embed(texts: list[str]) -> np.ndarray:
-    """Embeddings for texts, cached per text. Raises LLMUnavailable if the model cannot be reached."""
-    out: list = [None] * len(texts)
-    todo = []
-    for i, t in enumerate(texts):
-        hit = cache.get("emb", cache.key(config.MODELS["embed"], config.EMBED_DIM, t))
-        if hit is not None:
-            out[i] = hit
-        else:
-            todo.append(i)
-    from google.genai import types
-
-    for s in range(0, len(todo), config.EMBED_BATCH):
-        idx = todo[s : s + config.EMBED_BATCH]
-        for attempt in range(config.LLM_MAX_ATTEMPTS):
-            try:
-                r = client().models.embed_content(
-                    model=config.MODELS["embed"], contents=[texts[i] for i in idx],
-                    config=types.EmbedContentConfig(output_dimensionality=config.EMBED_DIM),
-                )
-                break
-            except Exception as e:
-                if classify(e) != "transient" or attempt == config.LLM_MAX_ATTEMPTS - 1:
-                    raise LLMUnavailable(str(e)) from e
-                time.sleep(random.uniform(0, 2 ** (attempt + 2)))
-        for i, e in zip(idx, r.embeddings):
-            out[i] = cache.put("emb", cache.key(config.MODELS["embed"], config.EMBED_DIM, texts[i]), e.values)
-    v = np.array(out, dtype=np.float32)
-    return v / np.maximum(np.linalg.norm(v, axis=1, keepdims=True), 1e-9)

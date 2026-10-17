@@ -20,10 +20,9 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 MODELS = {  # per-model free budgets (state.md: model routing)
     "synth": ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemma-4-26b-a4b-it", "gemini-3-flash-preview"],
     "lead": ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"],
-    "embed": "gemini-embedding-2",
 }
-EMBED_DIM = 256          # gemini-embedding-2 supports 128-3072; 256 keeps storage small
-EMBED_BATCH = 100        # texts per embedding request
+EMBED_MODEL = "minishlab/potion-retrieval-32M"  # local static embeddings (embed.py); no API quota
+EMBED_DIM = 256
 LLM_MAX_ATTEMPTS = 3     # transient-error attempts per model before falling back
 LLM_CALL_BUDGET_S = 60   # wall-clock budget per logical call across retries
 
@@ -38,8 +37,10 @@ CANDIDATES_PER_READER = 80
 EDITION_SIZE = 12
 EXPLORE_SLOTS = 2
 MAX_PER_TOPIC = 4
-CLUSTER_COSINE = 0.80      # items above this title-embedding similarity describe the same event
-RELEVANCE_COSINE = 0.30    # item-topic similarity below this contributes nothing (calibrate on data)
+TOPIC_TOP_K = 2            # an item counts toward topic t only if t is among its top-2 topics (relative across topics)
+CANDIDATES_PER_TOPIC = 30  # ... and it is among the day's top-30 items for t (relative across items)
+CLUSTER_PERCENTILE = 99.0  # same event: pair similarity in the top 1% of the candidate set's pairwise distribution
+CLUSTER_MIN_JACCARD = 0.2  # ... and shared title content words (lexical confirmation)
 
 # Learning (state.md: learning mechanism). Assumptions tuned by the persona simulation.
 PRIOR_STRENGTH = 4.0

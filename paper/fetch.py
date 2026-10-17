@@ -39,9 +39,9 @@ def allowed(url: str) -> bool:
     return rp is None or rp.can_fetch(config.USER_AGENT, url)
 
 
-def get(url: str, *, ns="http", headers=None, timeout=None, min_interval=0.0, respect_robots=True, binary=False):
+def get(url: str, *, ns="http", headers=None, timeout=None, min_interval=0.0, respect_robots=True, binary=False, tag=None):
     """Return (status, content_type, body) — cached by URL+headers; failures are cached only as 'no body'."""
-    k = cache.key(url, headers)
+    k = cache.key(url, headers, tag)  # tag bounds freshness, e.g. the edition day for feeds
     hit = cache.get(ns, k)
     if hit is not None:
         body = cache.get_bytes(ns + "-b", k) if binary else hit.get("body")
